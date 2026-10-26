@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.flaghand/flaghand",
-  "description": "Agents draft X and LinkedIn posts. Only your passkey approves. Flaghand posts exactly that.",
+  "description": "Your agent starts at flaghand.com/llms.txt, signs you up, drafts X and LinkedIn posts; you approve.",
   "title": "Flaghand",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://flaghand.com",
   "icons": [
     {

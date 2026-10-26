@@ -119,7 +119,7 @@ For the full instructions, install the [agent skill](https://app.flaghand.com/sk
 - [App and API index for agents — llms.txt](https://app.flaghand.com/llms.txt)
 - [Documentation](https://app.flaghand.com/docs)
 - [Service status](https://flaghand.com/status)
-- [Official MCP Registry entry — com.flaghand/flaghand](https://registry.modelcontextprotocol.io/v0/servers/com.flaghand%2Fflaghand/versions/0.1.0)
+- [Official MCP Registry entry — com.flaghand/flaghand](https://registry.modelcontextprotocol.io/v0/servers/com.flaghand%2Fflaghand/versions/0.1.1)
 
 Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's application code remains private.
 
@@ -129,6 +129,6 @@ Documentation source snapshot: `9abafaf44a54cdbaff0d1379a95c8548f4105fc6` (Octob
 
 - **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit, with the closed-sign-up response and waitlist next call from `docs/errors.md`. The CLI recipe was run against hosted release 0.1.0 (`flaghand help` lists its commands). Prices and trial terms are the published terms and live plans on the date above.
 - **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
-- **server.json** copies the live MCP Registry entry's `server` object, version `0.1.0`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
+- **server.json** copies the live MCP Registry entry's `server` object, version `0.1.1`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
 
 Make documentation changes in Flaghand's docs first, then refresh this snapshot. Do not maintain a separate set of instructions here.
