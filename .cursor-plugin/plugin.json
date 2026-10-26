@@ -1,0 +1,15 @@
+{
+  "name": "flaghand",
+  "version": "1.0.0",
+  "description": "Agents draft X and LinkedIn posts. Only your passkey approves. Flaghand posts exactly that.",
+  "author": {
+    "name": "Flaghand",
+    "email": "support@flaghand.com"
+  },
+  "homepage": "https://flaghand.com",
+  "repository": "https://github.com/flaghand/flaghand",
+  "license": "MIT-0",
+  "keywords": ["social-media", "x", "twitter", "linkedin", "publishing", "approval", "passkey", "mcp"],
+  "logo": "https://flaghand.com/assets/icon.svg",
+  "mcpServers": "mcp.json"
+}
