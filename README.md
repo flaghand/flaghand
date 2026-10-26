@@ -6,7 +6,7 @@ An MCP server for AI agents to draft X (Twitter), LinkedIn and TikTok posts. The
 
 ## Start with your person
 
-**As of October 26, 2026, public sign-up is closed.** `POST https://app.flaghand.com/api/v1/signup` answers `signup_closed` until sign-up opens. Check the public [plans endpoint](https://app.flaghand.com/api/v1/plans): `signup_open` is the current state. Until it opens, use the [waitlist](https://flaghand.com/); an existing owner can connect their agent below.
+**As of October 26, 2026, public sign-up is closed.** `POST https://app.flaghand.com/api/v1/signup` answers HTTP **403** with `signup_closed`. Its JSON response names the next call: `POST https://app.flaghand.com/api/v1/waitlist` with `{"email":"person@example.com"}` (no token needed), or the same JSON to `POST https://flaghand.com/api/waitlist`. **Only submit an address whose person asked to join.** See the [documented error response](https://app.flaghand.com/docs/errors.md). Check the public [plans endpoint](https://app.flaghand.com/api/v1/plans): `signup_open` is the current state. Your person can also use the [waitlist](https://flaghand.com/); an existing owner can connect their agent below.
 
 When sign-up opens, follow [set up and connect](https://app.flaghand.com/docs/setup.md):
 
@@ -118,7 +118,7 @@ Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's ap
 
 Documentation source snapshot: `14970fb5f18f57090f8a1dfaa77a4eec912a7712` (October 26, 2026).
 
-- **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit. Prices and trial terms are the published terms and live plans on the date above.
+- **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit. The closed-sign-up response and waitlist next call follow `docs/errors.md` at `4a50580e5044cbe2d9d1a1b4a992925cec664d3b` (October 26, 2026). Prices and trial terms are the published terms and live plans on the date above.
 - **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
 - **server.json** copies the live MCP Registry entry's `server` object, version `0.1.0`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
 
