@@ -13,7 +13,8 @@ When sign-up opens, follow [set up and connect](https://app.flaghand.com/docs/se
 1. Read the plans and tell your person the price before starting.
 2. Send `POST https://app.flaghand.com/api/v1/signup` with the JSON below. Keep the returned `claim_code` in secret storage; give your person only `signup_url`.
 3. Your person opens that link, adds their passkey and enters their card in Stripe Checkout. You never handle their passkey or card.
-4. Poll `POST https://app.flaghand.com/api/v1/signup/claim` with the claim code as described in the setup guide. Save the returned token in secret storage as soon as it is ready; it is shown once. A claimed token does not prove Checkout is complete: read the workspace's billing state before saying posting is ready.
+4. Collect the token with `claimSignup`: `POST https://app.flaghand.com/api/v1/signup/claim` with `{"claim_code": "…"}`. It answers `202 pending` with `Retry-After: 60` until the passkey is added, then once `200 ready` with the token. Don't loop pending calls into the conversation: stop the turn and call once when your person is back (the CLI's `flaghand signup wait` waits quietly). Save the token in secret storage at once; it is shown once.
+5. The claim is ready after the passkey, not after payment. Read `getBilling`: only `can_post: true` means the workspace can post. You can't enter the card or finish payment for your person.
 
 ```json
 {
@@ -93,7 +94,15 @@ These recipes follow the [agents guide](https://app.flaghand.com/docs/agents.md)
 
 HTTP base: `https://app.flaghand.com/api/v1`, JSON, with `Authorization: Bearer <token>`. Keep the token in secret storage. The owner creates it in Settings › Agents; the four drafting scopes above are enough for the approval-request loop.
 
-The Flaghand CLI requires Node 20 or later but **is not on npm yet**. Use MCP or HTTP until it is; this repository contains no CLI or server code. The [API reference](https://app.flaghand.com/api/v1/openapi.json) is public.
+The Flaghand CLI requires Node 20 or later. It **isn't on npm yet**, but the hosted release runs with nothing installed:
+
+```sh
+FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
+npx --yes --package "$FLAGHAND_CLI" flaghand --help
+npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
+```
+
+Use that prefix for every CLI command. The [release catalog](https://app.flaghand.com/cli/latest.json) gives each release's immutable tarball `url` and SHA-512 `integrity`. This repository contains no CLI or server code. The [API reference](https://app.flaghand.com/api/v1/openapi.json) is public.
 
 ## Draft, check, request approval, then stop
 
@@ -116,9 +125,9 @@ Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's ap
 
 ## Where this comes from
 
-Documentation source snapshot: `14970fb5f18f57090f8a1dfaa77a4eec912a7712` (October 26, 2026).
+Documentation source snapshot: `9abafaf44a54cdbaff0d1379a95c8548f4105fc6` (October 26, 2026).
 
-- **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit. The closed-sign-up response and waitlist next call follow `docs/errors.md` at `4a50580e5044cbe2d9d1a1b4a992925cec664d3b` (October 26, 2026). Prices and trial terms are the published terms and live plans on the date above.
+- **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit, with the closed-sign-up response and waitlist next call from `docs/errors.md`. The CLI recipe was run against hosted release 0.1.0 (`flaghand help` lists its commands). Prices and trial terms are the published terms and live plans on the date above.
 - **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
 - **server.json** copies the live MCP Registry entry's `server` object, version `0.1.0`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
 
