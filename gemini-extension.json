@@ -1,0 +1,11 @@
+{
+  "name": "flaghand",
+  "version": "1.0.0",
+  "description": "Draft, check and request approval for X, LinkedIn and TikTok posts. Only the owner approves with a passkey; agents never approve, schedule or post.",
+  "mcpServers": {
+    "flaghand": {
+      "httpUrl": "https://app.flaghand.com/mcp"
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}

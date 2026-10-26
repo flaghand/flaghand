@@ -66,6 +66,18 @@ bearer_token_env_var = "FLAGHAND_TOKEN"
 
 Only the variable's name is saved. Start a new Codex session with that variable available. `mcp get` checks saved configuration, not a successful sign-in; call `getMe` to confirm the workspace and scopes.
 
+### Gemini CLI
+
+Install the extension from this public repository:
+
+```sh
+gemini extensions install https://github.com/flaghand/flaghand
+```
+
+Restart Gemini CLI, then use `/mcp auth flaghand` to complete the owner's OAuth sign-in. The extension registers the Streamable HTTP server and loads the short [GEMINI.md](GEMINI.md) context; no token, local server or build is required. Call `getMe` after signing in to verify the workspace and scopes. Install this extension **or** a manual `flaghand` MCP entry, not both.
+
+**October 26, 2026 — extension 1.0.0:** added `gemini-extension.json` and Gemini-specific context drawn from the [canonical skill](https://app.flaghand.com/skill.md). The [official gallery](https://geminicli.com/extensions/browse/) automatically crawls public repositories tagged `gemini-cli-extension` daily and lists those that pass validation. Direct installation does not depend on gallery inclusion; publication here is not proof of a gallery listing or an agent's discovery.
+
 ### Cursor
 
 Merge this into `~/.cursor/mcp.json`, or `.cursor/mcp.json` for one project:
@@ -130,5 +142,7 @@ Documentation source snapshot: `9abafaf44a54cdbaff0d1379a95c8548f4105fc6` (Octob
 - **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit, with the closed-sign-up response and waitlist next call from `docs/errors.md`. The CLI recipe was run against hosted release 0.1.0 (`flaghand help` lists its commands). Prices and trial terms are the published terms and live plans on the date above.
 - **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
 - **server.json** copies the live MCP Registry entry's `server` object, version `0.1.1`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
+
+- **GEMINI.md** is a short Gemini CLI context drawn from that `SKILL.md`, with links back to the canonical skill and task guides rather than a second manual. **gemini-extension.json** is client configuration only: extension `1.0.0` registers the hosted MCP endpoint and that context file, without local server code, credentials or hooks.
 
 Make documentation changes in Flaghand's docs first, then refresh this snapshot. Do not maintain a separate set of instructions here.
