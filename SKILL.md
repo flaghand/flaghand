@@ -57,10 +57,12 @@ chooses a platform for you. `getSetup` returns the same `next` plus diagnostic `
 If `next.operation_id` is null, give the person its support remedy in `next.tell_person` instead of retrying an
 unconfigured platform. Match the intended account before supplying a `connection_id`; advice never picks between
 several accounts needing a reconnect. `next_steps` still links the task pages.
-For `startConnection`, give the person the returned `url` and `next.tell_person`: they sign in and authorize the
-platform themselves. Starting the link works before payment with `connections` scope. For `startCheckout`, give
-them `checkout_url` to enter their card in Stripe, never in chat (`billing` scope is needed). An existing past-due
-plan returns `openBillingPortal` instead: give them `portal_url` to update payment, not a second subscription.
+For `startSignup`, relay the returned `for_person` unchanged alongside `signup_url`; keep `claim_code` private.
+For `startConnection`, relay its `for_person` unchanged alongside `url`, rather than paraphrasing `next.tell_person`:
+they sign in and authorize the platform themselves. Starting the link works before payment with `connections` scope.
+For `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`; they enter their card in Stripe,
+never in chat (`billing` scope is needed). Do not improvise the trial, price or cancellation terms.
+An existing past-due plan returns `openBillingPortal` instead: give them `portal_url` to update payment, not a second subscription.
 Without those scopes,
 the owner uses Settings or Billing in the desk. A matching open Checkout is reused, not replaced while they are
 entering their card. Read setup again after they finish. Advice never replaces draft checks or passkey approval.

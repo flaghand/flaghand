@@ -126,10 +126,11 @@ these task pages, as before. `next` names the single next onboarding call from t
 - No usable active account: `startConnection`. Set `platform` to the platform the person's task needs; the read
   accepts an optional `platform` query (MCP argument) such as `linkedin`, so another platform's account doesn't hide
   that missing connection. Known arguments are in `next.arguments`; an empty workspace never defaults to X.
-  Give the person the operation's returned `url` with `next.tell_person`: they sign in on the platform and allow the
-  connection themselves. Starting the link works before payment; the agent cannot authorize the account.
-- An account is usable but the plan is inactive: `startCheckout`. Give the person the returned `checkout_url` so
-  they can enter their card in Stripe, not in chat. An existing past-due plan returns `openBillingPortal` instead,
+  Relay the operation's returned `for_person` unchanged alongside `url`, rather than paraphrasing `next.tell_person`:
+  they sign in on the platform and allow the connection themselves. Starting the link works before payment; the agent
+  cannot authorize the account.
+- An account is usable but the plan is inactive: `startCheckout`. Relay its `for_person` unchanged alongside
+  `checkout_url`; they enter their card in Stripe, not in chat. An existing past-due plan returns `openBillingPortal` instead,
   with `portal_url` for updating payment; it must not start a second subscription.
 - An account and plan are ready (trialing, active or comped): `createPost`. Read the owner's voice and send-back
   notes, then supply the whole draft plan; this advice never approves or posts anything.
@@ -160,8 +161,9 @@ No active account for a platform: only the person can connect it, on the platfor
 
 - With the `connections` scope (a sign-up token has it), start it for them: `startConnection`
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
-  reconnect that account) answers `url` and `expires_at`. Give the person the `url`; they sign in on X, LinkedIn or
-  TikTok and allow Flaghand. Then call `listConnections` again.
+  reconnect that account) answers `url`, `for_person` and `expires_at`. Relay `for_person` unchanged alongside `url`;
+  it names the platform (and the pinned account on reconnect), explains consent and says that nothing posts without
+  the owner's passkey approval. They sign in on the platform and allow Flaghand; then call `listConnections` again.
 - Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
 
 X logins renew themselves. LinkedIn logins last 60 days, and the desk warns a week ahead. A draft check that returns a
