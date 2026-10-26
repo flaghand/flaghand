@@ -20,11 +20,59 @@ approving: only the workspace owner approves, with their passkey, and Flaghand p
 approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
 outside the product's own approval request.** No token can do those things, so there is nothing to work around.
 
+## If you can't reach Flaghand
+
+A sandbox can stop a request before Flaghand sees it. First try the public, read-only
+`GET https://app.flaghand.com/api/v1/plans` without a token. Claude Code cloud documents `403` with
+`x-deny-reason: host_not_allowed`; Copilot's documented warning says “Firewall rules blocked me from connecting to one
+or more addresses”. Other clients do not document a universal blocked-host HTTP status or error string. A failed
+connection, `EAI_AGAIN`, `ENOTFOUND`, or the CLI's local `network` error can mean a sandbox policy **or** ordinary
+DNS/connectivity trouble. A bare `403` is not proof of a sandbox block.
+
+For a confirmed client-policy block, ask exactly: “Please allow HTTPS requests to https://app.flaghand.com in this agent's network
+settings, including POST, then let me retry Flaghand.” The person or their administrator changes the relevant
+setting below; do not bypass a policy or ask for broad unrestricted access. Use the hostname from `https://app.flaghand.com`,
+without `https://` or a path, in domain fields.
+
+- **Codex cloud:** Settings › Codex Cloud › Environments › the environment's … › Edit. Turn on **Allow Codex to
+  access internet**, then add the hostname under **Additional allowed domains** (with **Package managers** or
+  **Custom domains only**). Save, **Republish**, and retry in a new task. Current docs do not specify the initial
+  toggle state. In **legacy** cloud tasks, agent-phase internet is off by default: set **Agent internet access** to
+  **On**, add the domain to its allowlist, and do not restrict methods to GET/HEAD/OPTIONS; drafting and MCP need POST.
+  [Current controls](https://learn.chatgpt.com/docs/environments/cloud-environments#connect-to-services) ·
+  [Legacy controls](https://learn.chatgpt.com/docs/cloud/internet-access).
+- **Claude Code on the web:** the environment selector at claude.ai/code › edit the environment › **Network access**
+  › **Custom** › **Allowed domains**. Add the hostname and save. The default is **Trusted**, not unrestricted.
+  Organization-shared environments need an Owner's edit. Enabled MCP connectors use Anthropic's server-side route,
+  not the session's domain list; this setting is for shell/HTTP requests.
+  [Controls](https://code.claude.com/docs/en/cloud-environments#network-access) ·
+  [Documented deny marker](https://code.claude.com/docs/en/routines#environments-and-network-access).
+- **ChatGPT agent mode:** OpenAI's restricted-site list can stop a source; there is no documented user allowlist
+  override for that block. If your interface instead uses **Cloud browser**, grant this website's access request or
+  change its site permission in **Settings › Cloud browser**; it asks before a new website by default. This does not
+  override OpenAI, workspace or website-side restrictions. Do not promise that changing a permission unblocks them.
+  [Agent restrictions](https://help.openai.com/en/articles/11752874-chatgpt-agent) ·
+  [Cloud browser permissions](https://help.openai.com/en/articles/20001280-using-cloud-browser-in-chatgpt).
+- **Cursor background/cloud agents:** internet is allowed by default. If restricted, open the **Cloud Agents
+  dashboard › Security** network settings and add the hostname to **Default + allowlist** or **Allowlist only**.
+  A locked Enterprise policy needs an administrator. [Controls](https://cursor.com/docs/cloud-agent/security-network).
+- **GitHub Copilot coding/cloud agent:** a firewall is on by default. A repository admin opens **Settings › Copilot
+  › Internet access › Copilot cloud agent › Custom allowlist › Add rule**, adds the hostname and saves changes.
+  If the organization disables repository custom rules, its owner must add the organization rule instead.
+  [Controls](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-the-firewall).
+
+An app response is different: Flaghand API errors are JSON with `error.code` and `error.message`.
+`signup_closed`, `scope_missing`, `owner_session_required` and `workspace_inactive` are app decisions, not client
+network blocks. `/mcp`'s `401` with `WWW-Authenticate` is its normal OAuth challenge (JSON-RPC code `-32001`). Follow
+[Errors](https://app.flaghand.com/docs/errors.md), not network settings. Non-JSON HTML or a generic proxy error alone does not identify who blocked
+it; report the status and safe diagnostic, never tokens or cookies. Settings and first-party sources checked October
+26, 2026; the local check exercised the CLI in a no-network container, not these five cloud products end to end.
+
 ## 1. An account and access to it
 
 The person already has Flaghand: they give you access in one of two ways.
 
-- **Sign in from the app.** Claude, ChatGPT, Claude Code and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
+- **Sign in from the app.** Claude, ChatGPT and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
   and sign in: the owner signs in with their passkey, picks the workspace and clicks Allow. Nothing to paste. The app
   gets a workspace token with the `read`, `drafts`, `media` and `request-approval` scopes, listed in Settings › Agents,
   where the owner can revoke it.
@@ -47,10 +95,12 @@ instead: `service_auth` at `https://app.flaghand.com/agent/identity` is this sam
 The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every request needs authentication, `initialize` included; a
 `401` with `WWW-Authenticate` sends an OAuth client to sign-in.
 
-- **Claude Code, signing in:** `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp`, then `/mcp` to
-  sign in.
-- **Claude Code, with a token:** `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header "Authorization: Bearer tok_…"`
-  saves the token in Claude Code's MCP config; prefer signing in, which stores no token you handle.
+- **Claude Code, in the session doing the setup:** use the HTTP API with the claimed or owner-provided token now;
+  follow [the same-session recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session) below. Do not ask the person to run `/mcp`,
+  install software, copy a token or restart the chat. Configure MCP for a later session without interrupting this one.
+- **Claude Code, optional interactive OAuth:** a person already using Claude Code can add
+  `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp` and use `/mcp` themselves to sign in with a
+  passkey and Allow. This interactive command is not an agent-callable tool or a prerequisite for HTTP setup.
 - **Codex CLI, already in this session:** if you just collected the sign-up token, use the HTTP API below **in this
   session**. Keep the claimed token in your private credential store and pass it directly to the HTTP client; call
   `GET https://app.flaghand.com/api/v1/me`, then `getBilling` and continue setup. Do not ask the person to export a token, restart
@@ -74,6 +124,50 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   `Authorization: Bearer tok_…`. Every operation named below links its own page with its fields, an example request
   and answer, its errors, and its CLI and MCP names.
 
+### Claude Code: finish in this session
+
+MCP is optional, not the sign-up transport. Use HTTP for `listPlans`, `startSignup` and `claimSignup` above even
+when no MCP tools are connected. Capture the ready claim's `token` directly into secret storage, not tool output;
+keep the `workspace_id` too. The person only opens the returned sign-up, payment and account-consent links. A claim
+is collected once: if you already saved its token, reuse it rather than claiming again or starting another sign-up.
+
+With the token available to your script as `FLAGHAND_TOKEN`, call the API directly. This curl example passes the
+header through stdin so the token is not in process arguments; do not enable shell tracing or curl verbose output:
+
+```sh
+printf 'Authorization: Bearer %s\n' "$FLAGHAND_TOKEN" |
+  curl --fail-with-body --silent --show-error --header @- https://app.flaghand.com/api/v1/me
+```
+
+Read `getBilling` (`GET /api/v1/workspaces/{workspace}/billing`) next. A ready claim proves enrollment, not payment.
+If Checkout is still open, keep the original sign-up link with the person and follow
+[waiting for Checkout](https://app.flaghand.com/docs/billing.md#waiting-for-checkout); do not create a second payment session.
+Then use HTTP for `getSetup`, `startConnection` (hand its `url` to the person), `listConnections`, `getVoice`,
+`listSendBacks` and the first draft. See [draft and request approval](https://app.flaghand.com/docs/drafting.md) for exact bodies.
+Keep using HTTP in this conversation if newly configured MCP tools are not available; a saved config is not a
+successful connection, and installing a server does not finish the user's task.
+
+For **later Claude Code sessions**, the agent can register the server itself:
+
+```sh
+claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp \
+  --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
+```
+
+The single quotes are intentional: Claude Code stores the literal environment-variable reference, not the token.
+Provide `FLAGHAND_TOKEN` from secret storage in the environment of the shell that starts that later session. Do not
+ask the person to export it or paste it. If a server with that name already exists, inspect its config before changing
+it; do not blindly overwrite another connection. In a later session, call MCP `getMe` to verify the workspace and
+scopes before using it. Until then, HTTP already works. Claude Code's [MCP reference](https://code.claude.com/docs/en/mcp)
+documents HTTP headers and environment-variable expansion. Checked with Claude Code 2.1.310 (2026-10-26).
+It also supports [`claude mcp login flaghand`](https://code.claude.com/docs/en/mcp#authenticate-from-the-command-line)
+for optional interactive OAuth without `/mcp`; `--no-browser` prints an authorization link but still asks for the
+full callback URL in the terminal. That is not the link-only sign-up path above. No hot-loading of newly added MCP
+servers is assumed here.
+
+The plugin also contains the same skill instructions. Its bundled MCP uses OAuth; if it isn't authenticated in this
+session, use this HTTP path rather than sending the person to `/mcp` or claiming the plugin is connected.
+
 The MCP server lists thirteen tools for the drafting loop: `getMe`, `listConnections`, `uploadMedia`, `createPost`,
 `createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `getOperation`,
 `callReadOperation` and `callWriteOperation`. Everything else is one step away: `getOperation` with
@@ -88,7 +182,7 @@ release with `npx`:
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
 npx --yes --package "$FLAGHAND_CLI" flaghand --help
-npx --yes --package "$FLAGHAND_CLI" flaghand plans --json
+npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
 ```
 
 Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand` prefix for any CLI command, including `signup` when

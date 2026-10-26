@@ -16,21 +16,46 @@ The docs are one page per task, each complete on its own: [set up and connect](h
 [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md), [billing](https://app.flaghand.com/docs/billing.md) and
 [errors](https://app.flaghand.com/docs/errors.md). Read the one your task needs, not the whole manual.
 
+## If you can't reach Flaghand
+
+A sandbox can stop a request before Flaghand sees it. Claude Code cloud documents `403` with
+`x-deny-reason: host_not_allowed`; Copilot's documented warning says “Firewall rules blocked me from connecting to one
+or more addresses”. The CLI's local `network` error, including `EAI_AGAIN` or `ENOTFOUND`, can also mean ordinary
+DNS/connectivity trouble. A bare `403` is not proof of a sandbox block.
+
+For a confirmed client-policy block, ask exactly: “Please allow HTTPS requests to https://app.flaghand.com in this agent's network
+settings, including POST, then let me retry Flaghand.” [Settings for your client and blocks a person cannot
+override](https://app.flaghand.com/docs/setup.md#if-you-cant-reach-flaghand). Never bypass the policy. API JSON errors such as
+`signup_closed`, `scope_missing` or `owner_session_required`, and `/mcp`'s `401` with `WWW-Authenticate`, are app responses,
+not sandbox blocks; follow [Errors](https://app.flaghand.com/docs/errors.md).
+
 ## Connect
 
-Use Flaghand's MCP tools when available. In Claude Code, add the remote server:
+Use Flaghand's MCP tools when already authenticated. **In a Claude Code conversation with no working MCP, finish
+setup and drafting in this same session over HTTP.** Read [set up and connect](https://app.flaghand.com/docs/setup.md), including
+[the same-session recipe](https://app.flaghand.com/docs/setup.md#claude-code-finish-in-this-session). Start sign-up through the public
+HTTP API when open, hand `signup_url` to the person, then claim and save the token directly into secret storage without
+printing it. Use it for `getMe`, `getBilling` (enrollment is not payment), account-consent links and the first draft.
+Keep the original sign-up/Checkout link while pending. Ask the person only to open links; never ask them to run `/mcp`,
+copy a token, install software, export a variable or restart the chat. Do not stop at installing an MCP server.
+
+The agent can prepare MCP for **later sessions**, with `FLAGHAND_TOKEN` supplied from secret storage to the shell
+that launches Claude Code. Single quotes save a literal environment reference, never the token itself:
 
 ```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp
+claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp \
+  --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
 ```
 
-Then use `/mcp` to sign in. The workspace owner signs in with their passkey, picks their workspace and clicks Allow.
-Other OAuth-capable MCP apps add the same URL and sign in. There is no token to paste: the app gets only `read`,
-`drafts`, `media` and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401`
-with `WWW-Authenticate` points the client to OAuth discovery. Owners can revoke access in Settings › Agents.
+Keep using HTTP now if those tools are not available; call MCP `getMe` in the later session before claiming it works.
+The plugin's bundled server uses OAuth, not this header: if unauthenticated, use HTTP rather than asking the person
+to run `/mcp`. Interactive OAuth remains optional for a person already using Claude Code. Other OAuth-capable MCP apps
+add `https://app.flaghand.com/mcp` and sign in with the owner's passkey, workspace and Allow. They get only `read`, `drafts`, `media`
+and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
+`WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
-For clients without OAuth, the owner creates a workspace token with those same four scopes in the desk. Keep it in
-secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. The HTTP API base is
+For an existing account without OAuth, the owner creates a workspace token with those four scopes in the desk. Keep
+it in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. The HTTP API base is
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
 
@@ -39,7 +64,7 @@ For a terminal agent, Node 20 or later runs the hosted CLI with no install or ch
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
 npx --yes --package "$FLAGHAND_CLI" flaghand --help
-npx --yes --package "$FLAGHAND_CLI" flaghand plans --json
+npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
 ```
 
 Use that prefix for every CLI command, including `signup` when sign-up is open and `drafts wait`. The catalog's
