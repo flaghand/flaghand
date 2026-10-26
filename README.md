@@ -48,9 +48,17 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   sign in.
 - **Claude Code, with a token:** `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header "Authorization: Bearer tok_…"`
   saves the token in Claude Code's MCP config; prefer signing in, which stores no token you handle.
-- **Codex CLI:** with the token in `FLAGHAND_TOKEN` in the shell that starts Codex,
-  `codex mcp add flaghand --url https://app.flaghand.com/mcp --bearer-token-env-var FLAGHAND_TOKEN`. Only the variable's name is
-  saved.
+- **Codex CLI, already in this session:** if you just collected the sign-up token, use the HTTP API below **in this
+  session**. Keep the claimed token in your private credential store and pass it directly to the HTTP client; call
+  `GET https://app.flaghand.com/api/v1/me`, then `getBilling` and continue setup. Do not ask the person to export a token, restart
+  Codex or run a terminal command. Exporting a variable in a child shell cannot change the running Codex process, and
+  an external `codex mcp add` does not by itself guarantee new tools in that session. A successful `getMe` over HTTP
+  is authenticated access; MCP is optional, not a prerequisite for their first draft.
+- **Codex CLI, a later session:** make the saved token available as `FLAGHAND_TOKEN` to the process that starts Codex,
+  then run `codex mcp add flaghand --url https://app.flaghand.com/mcp --bearer-token-env-var FLAGHAND_TOKEN`. Only the variable's name
+  is saved. Start the new session with that environment and call `getMe` through MCP to verify it. Codex also supports
+  OAuth and dynamic client registration; [the Codex guide](https://app.flaghand.com/docs/agents.md#codex-cli) distinguishes that sign-in from the
+  token you already claimed. Neither path requires the person to copy a credential into chat.
 - **Claude apps (Free, Pro, Max):** add `https://app.flaghand.com/mcp` at Customize › Connectors › Add custom connector and sign in;
   choose Sign in now and Use Claude's published identity if shown. Free allows one custom connector.
 - **ChatGPT Business and Enterprise/Edu, on the web:** Plugins › + › Add custom MCP server, OAuth, then sign in;
