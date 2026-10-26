@@ -39,6 +39,9 @@ it signs them up for nothing else). `GET https://app.flaghand.com/api/v1/plans` 
 else works without an account.
 
 
+An agent that speaks the open [auth.md](https://app.flaghand.com/auth.md) agent-registration protocol can sign its person up through it
+instead: `service_auth` at `https://app.flaghand.com/agent/identity` is this same sign-up, and the claim grant collects the same token.
+
 ## 2. Connect your agent
 
 The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every request needs authentication, `initialize` included; a
@@ -207,6 +210,7 @@ Next: [draft and request approval](https://app.flaghand.com/docs/drafting.md). A
 - [Flaghand](https://flaghand.com/)
 - [Site index for agents](https://flaghand.com/llms.txt)
 - [App and API index for agents](https://app.flaghand.com/llms.txt)
+- [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person confirms with a passkey.
 - [Documentation](https://app.flaghand.com/docs)
 - [Agent skill](https://app.flaghand.com/skill.md) — `SKILL.md` here is byte-for-byte the hosted skill.
 - [Agents and client connection recipes](https://app.flaghand.com/docs/agents.md)
