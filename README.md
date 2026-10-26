@@ -253,7 +253,7 @@ connection as each draft's `connection_id`. If a platform has several, match the
 
 No active account for a platform: only the person can connect it, on the platform's own consent screen.
 
-- With the `connections` scope (a sign-up token has it), start it for them: `startConnection`
+- With the `connections` scope (a new-account claim has it; an existing-owner grant does not), start it for them: `startConnection`
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
   reconnect that account) answers `url`, `for_person` and `expires_at`. Relay `for_person` unchanged alongside `url`;
   it names the platform (and the pinned account on reconnect), explains consent and says that nothing posts without
@@ -301,8 +301,8 @@ The operation id is also the MCP tool's name. MCP says how to call it: `listed` 
 | [`getVoice`](https://app.flaghand.com/docs/api/getVoice.md) | `GET /workspaces/{workspace}/voice` | `flaghand voice get` | `callReadOperation` | `read` | The workspace's voice note: read it before drafting |
 | [`listSendBacks`](https://app.flaghand.com/docs/api/listSendBacks.md) | `GET /workspaces/{workspace}/voice/send-backs` | `flaghand voice list-send-backs` | `callReadOperation` | `read` | The owner's last 20 send-back notes: read them before drafting |
 | [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and the trial (from Stripe) |
-| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start a sign-up; returns the link a person opens to add their passkey and card |
-| [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the API token for a sign-up you started (once); 202 while the person hasn't added their passkey yet |
+| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: one link to sign up or sign in and allow the agent; never reveals whether the email has an account |
+| [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token once; 202 until the person creates their account or allows the agent |
 | [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
 | [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |
 
