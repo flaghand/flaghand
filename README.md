@@ -327,6 +327,10 @@ Next: [draft and request approval](https://app.flaghand.com/docs/drafting.md). A
 
 Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's application code remains private.
 
+## Licence
+
+The files in this repository (these docs, the agent skill and the client and plugin manifests) are licensed under [MIT-0](https://github.com/flaghand/flaghand/blob/main/LICENSE). That covers only these files. Flaghand itself (the hosted service, its server and app code, and the CLI) is not open source and is not licensed here; using it is governed by the [Terms](https://flaghand.com/terms). The licence grants no rights to the Flaghand name or logo, which are trademarks of Trellisbyte LLC: you may say something works with Flaghand, but not present it as Flaghand or as made or endorsed by us.
+
 ## Where this comes from
 
 After each successful production train deployment, this repository is refreshed from the app's rendered
