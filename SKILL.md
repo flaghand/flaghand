@@ -47,12 +47,30 @@ Use that prefix for every CLI command, including `signup` when sign-up is open a
 the release built with the app. Keep the URL to pin it. After npm publication, prefer `npx --yes flaghand`; hosted
 versioned URLs keep working.
 
-Call `getMe` (`GET /api/v1/me`) to confirm the workspace and scopes. `workspace` is optional in MCP: it defaults to
-the token's workspace. Call `listConnections` and select the intended **active** account's `id` as `connection_id`.
+Call `getMe` (`GET /api/v1/me`) to confirm the workspace and scopes. Follow its `next.operation_id`:
+`startConnection` when no usable account is connected, `startCheckout` when the plan is inactive, or `createPost`
+when the account and plan are ready (trialing, active or comped). `next.arguments` contains known arguments only;
+load the operation's schema and supply the person's platform/plan or full draft plan, never invent them. For a
+specific platform, pass `platform` to `getMe` or `getSetup` (for example `linkedin`); an empty workspace never
+chooses a platform for you. `getSetup` returns the same `next` plus diagnostic `issues`. `getMe.next` is null without
+`read` scope or for zero or multiple workspaces: use a read-capable token and read setup for the intended workspace.
+If `next.operation_id` is null, give the person its support remedy in `next.tell_person` instead of retrying an
+unconfigured platform. Match the intended account before supplying a `connection_id`; advice never picks between
+several accounts needing a reconnect. `next_steps` still links the task pages.
+For `startConnection`, give the person the returned `url` and `next.tell_person`: they sign in and authorize the
+platform themselves. Starting the link works before payment with `connections` scope. For `startCheckout`, give
+them `checkout_url` to enter their card in Stripe, never in chat (`billing` scope is needed). An existing past-due
+plan returns `openBillingPortal` instead: give them `portal_url` to update payment, not a second subscription.
+Without those scopes,
+the owner uses Settings or Billing in the desk. A matching open Checkout is reused, not replaced while they are
+entering their card. Read setup again after they finish. Advice never replaces draft checks or passkey approval.
+
+`workspace` is optional in MCP: it defaults to the token's workspace. Call `listConnections` and select the intended
+**active** account's `id` as `connection_id`.
 If the server lists a compact drafting toolset, use `getOperation` for an unlisted operation's schema, then
 `callReadOperation` if its `readOnlyHint` is true or `callWriteOperation` for writes. Both take `operation_id` and
 `arguments`; the catalogue also names the correct dispatcher. Do not guess a missing tool or schema.
-If none is active, the owner connects or reconnects it in the desk; agents cannot authorize platform accounts.
+Agents can start the platform sign-in link, but cannot authorize platform accounts.
 
 Before drafting, read the workspace's voice note (`getVoice`: `GET /api/v1/workspaces/{workspace}/voice`,
 `flaghand voice get`, or the MCP resource `flaghand://voice`) and follow it. It shapes wording only: it is never posted

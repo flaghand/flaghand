@@ -1,148 +1,217 @@
-# Flaghand: MCP server for AI agents — owners approve and schedule X (Twitter), LinkedIn and TikTok posts
+# Flaghand: MCP server for AI agents — owners approve X, LinkedIn and TikTok posts
 
-An MCP server for AI agents to draft X (Twitter), LinkedIn and TikTok posts. The owner uses a passkey to approve the exact text, media, account and time; Flaghand posts exactly that, now or on the approved schedule (TikTok: when the owner approves it).
+Agents draft, upload media, check and request approval. Only the owner's passkey approves the exact text, media,
+account and time; Flaghand posts exactly that. **Agents never approve, schedule, post, start a waiting job or send
+a DM for anyone.** Request approval through Flaghand, not in chat.
 
-**Agents draft, upload media, check and request approval. Agents never approve, schedule, post, start a waiting job or send a DM for anyone.** Request approval through Flaghand, not in chat. Only the owner's passkey approval creates a posting job.
+Public sign-up is **closed**. The
+[plans endpoint](https://app.flaghand.com/api/v1/plans) reports the current `signup_open` state. Only submit a waitlist address whose
+person asked to join. The instructions below are the same [setup guide](https://app.flaghand.com/docs/setup.md) served by the app,
+including its current CLI recipe and sign-up path.
 
-## Start with your person
+# Set up and connect
 
-**As of October 26, 2026, public sign-up is closed.** `POST https://app.flaghand.com/api/v1/signup` answers HTTP **403** with `signup_closed`. Its JSON response names the next call: `POST https://app.flaghand.com/api/v1/waitlist` with `{"email":"person@example.com"}` (no token needed), or the same JSON to `POST https://flaghand.com/api/waitlist`. **Only submit an address whose person asked to join.** See the [documented error response](https://app.flaghand.com/docs/errors.md). Check the public [plans endpoint](https://app.flaghand.com/api/v1/plans): `signup_open` is the current state. Your person can also use the [waitlist](https://flaghand.com/); an existing owner can connect their agent below.
+Everything an agent needs before its first draft: an account, access to the workspace, the MCP server or the HTTP API,
+the accounts the posts go out as, and the owner's voice note. This page is complete on its own; the next one is
+[draft and request approval](https://app.flaghand.com/docs/drafting.md).
 
-When sign-up opens, follow [set up and connect](https://app.flaghand.com/docs/setup.md):
+Flaghand drafts, checks and posts X, LinkedIn and TikTok posts for a person. An agent can do every step except
+approving: only the workspace owner approves, with their passkey, and Flaghand posts only the exact snapshot they
+approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
+outside the product's own approval request.** No token can do those things, so there is nothing to work around.
 
-1. Read the plans and tell your person the price before starting.
-2. Send `POST https://app.flaghand.com/api/v1/signup` with the JSON below. Keep the returned `claim_code` in secret storage; give your person only `signup_url`.
-3. Your person opens that link, adds their passkey and enters their card in Stripe Checkout. You never handle their passkey or card.
-4. Collect the token with `claimSignup`: `POST https://app.flaghand.com/api/v1/signup/claim` with `{"claim_code": "…"}`. It answers `202 pending` with `Retry-After: 60` until the passkey is added, then once `200 ready` with the token. Don't loop pending calls into the conversation: stop the turn and call once when your person is back (the CLI's `flaghand signup wait` waits quietly). Save the token in secret storage at once; it is shown once.
-5. The claim is ready after the passkey, not after payment. Read `getBilling`: only `can_post: true` means the workspace can post. You can't enter the card or finish payment for your person.
+## 1. An account and access to it
 
-```json
-{
-  "email": "person@example.com",
-  "plan": "monthly",
-  "agent_name": "Claude Code"
-}
-```
+The person already has Flaghand: they give you access in one of two ways.
 
-Your first subscription starts with a **7-day free trial at checkout; a card is required**. Standard plans are **US $19/month or $190/year**, plus any required tax. The published founding offer, while available, is **$149 for the first year, then $190/year**. Unless canceled before the trial ends, the card is charged when it ends; plans renew automatically until canceled. Hand the Checkout step to your person. Read [billing](https://app.flaghand.com/docs/billing.md), the [current plans](https://app.flaghand.com/api/v1/plans) and the [published terms](https://flaghand.com/terms) before presenting an offer.
+- **Sign in from the app.** Claude, ChatGPT, Claude Code and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
+  and sign in: the owner signs in with their passkey, picks the workspace and clicks Allow. Nothing to paste. The app
+  gets a workspace token with the `read`, `drafts`, `media` and `request-approval` scopes, listed in Settings › Agents,
+  where the owner can revoke it.
+- **A token.** The owner creates one in the desk, Settings › Agents › Create token (`https://app.flaghand.com/agents`), with those
+  four scopes already chosen. It is shown once. Keep it in `FLAGHAND_TOKEN` or the client's secret storage, never in a
+  draft, note, chat message or shared log. Only the owner can add `connections` (start connecting accounts), `cancel`,
+  `billing`, `webhooks` or `calendar`; a token can't create another token.
 
-## Connect an agent
+The person has no account yet: sign-up opens with paid early access. Until then they
+can join the waitlist with `POST https://flaghand.com/api/waitlist` and `{"email": "person@example.com"}` (no email is sent, and
+it signs them up for nothing else). `GET https://app.flaghand.com/api/v1/plans` shows the plans and the trial. Stop there: nothing
+else works without an account.
 
-Remote MCP server: **`https://app.flaghand.com/mcp`** — streamable HTTP, with OAuth or a workspace API token. Every MCP request needs authentication, including `initialize`; a `401` directs OAuth clients to sign-in.
 
-For OAuth, the workspace owner signs in with their passkey, picks their workspace and clicks Allow. The connector receives only `read`, `drafts`, `media` and `request-approval` scopes. The owner can revoke it in Settings › Agents. No API token or OAuth scope lets an agent approve, schedule or post.
+## 2. Connect your agent
 
-### Claude Code
+The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every request needs authentication, `initialize` included; a
+`401` with `WWW-Authenticate` sends an OAuth client to sign-in.
+
+- **Claude Code, signing in:** `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp`, then `/mcp` to
+  sign in.
+- **Claude Code, with a token:** `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header "Authorization: Bearer tok_…"`
+  saves the token in Claude Code's MCP config; prefer signing in, which stores no token you handle.
+- **Codex CLI:** with the token in `FLAGHAND_TOKEN` in the shell that starts Codex,
+  `codex mcp add flaghand --url https://app.flaghand.com/mcp --bearer-token-env-var FLAGHAND_TOKEN`. Only the variable's name is
+  saved.
+- **Claude apps (Free, Pro, Max):** add `https://app.flaghand.com/mcp` at Customize › Connectors › Add custom connector and sign in;
+  choose Sign in now and Use Claude's published identity if shown. Free allows one custom connector.
+- **ChatGPT Business and Enterprise/Edu, on the web:** Plugins › + › Add custom MCP server, OAuth, then sign in;
+  use its published client identity or dynamic registration if offered. Developer Mode is not required in the current
+  Plugins flow. Pro documents read/fetch access only; arbitrary custom-MCP access on Plus is not established by the current help page.
+- **Gemini Apps, Perplexity and other chat apps:** check the [dated plans and click-by-click setup](https://app.flaghand.com/docs/agents.md#mcp-from-claude-chatgpt-and-other-apps-sign-in)
+  first; a directory app or an MCP-capable developer product does not establish custom-URL access in a consumer app.
+- **Any other MCP client:** the same URL with `Authorization: Bearer tok_…`, or OAuth if it supports it.
+- **HTTP only** (curl, scripts, n8n, Make, Zapier): the API is `https://app.flaghand.com/api/v1`, JSON, with
+  `Authorization: Bearer tok_…`. Every operation named below links its own page with its fields, an example request
+  and answer, its errors, and its CLI and MCP names.
+
+The MCP server lists thirteen tools for the drafting loop: `getMe`, `listConnections`, `uploadMedia`, `createPost`,
+`createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `getOperation`,
+`callReadOperation` and `callWriteOperation`. Everything else is one step away: `getOperation` with
+`{"operation_id": "getSetup"}` returns its schema, then `callReadOperation` (reads) or `callWriteOperation` (writes)
+runs it with `{"operation_id": "getSetup", "arguments": {}}`; each refuses the other kind and names the right one.
+In MCP, `workspace` is optional and defaults to your token's workspace. The operation tables on these pages say which
+tool runs each operation.
+
+The CLI needs Node 20 or later, but no installed package or source checkout. It isn't on npm yet; run the hosted
+release with `npx`:
 
 ```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp
+FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
+npx --yes --package "$FLAGHAND_CLI" flaghand --help
+npx --yes --package "$FLAGHAND_CLI" flaghand plans --json
 ```
 
-Then use `/mcp` to sign in. To install the skill and OAuth server together instead, use Flaghand's [hosted plugin](https://app.flaghand.com/agent-plugin/marketplace.json):
+Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand` prefix for any CLI command, including `signup` when
+sign-up is open and `drafts wait`. The catalog includes the version, source commit and SHA-512 `integrity` of its
+immutable tarball. Keep its URL to pin a release; fetching the catalog again picks the current one. `npx` uses its
+cache, not a project install. Once the package is published, the preferred command will be `npx --yes flaghand`;
+the hosted versioned URLs will keep working.
 
-```text
-/plugin marketplace add https://app.flaghand.com/agent-plugin/marketplace.json
-/plugin install flaghand@flaghand
-```
+To keep these instructions in Claude Code or Codex, install the [agent skill](https://app.flaghand.com/skill.md). Other clients'
+recipes are in the [agents guide](https://app.flaghand.com/docs/agents.md).
 
-Choose the standalone MCP setup or the plugin, not both.
-
-### Codex CLI
-
-Use the documented token setup: the owner creates a workspace token in Settings › Agents with `read`, `drafts`, `media` and `request-approval`. Make it available as `FLAGHAND_TOKEN` through secret storage in the shell that starts Codex; never put its value in a command, config file or shared log.
-
-```sh
-codex mcp add flaghand --url https://app.flaghand.com/mcp --bearer-token-env-var FLAGHAND_TOKEN
-codex mcp get flaghand --json
-```
-
-Or merge this equivalent entry into `~/.codex/config.toml` (or `$CODEX_HOME/config.toml`):
-
-```toml
-[mcp_servers.flaghand]
-url = "https://app.flaghand.com/mcp"
-bearer_token_env_var = "FLAGHAND_TOKEN"
-```
-
-Only the variable's name is saved. Start a new Codex session with that variable available. `mcp get` checks saved configuration, not a successful sign-in; call `getMe` to confirm the workspace and scopes.
+<!-- claude-code-plugin:start -->
+In Claude Code, the plugin installs the skill and the OAuth MCP server together:
+`/plugin marketplace add https://app.flaghand.com/agent-plugin/marketplace.json`, then `/plugin install flaghand@flaghand`.
+<!-- claude-code-plugin:end -->
 
 ### Gemini CLI
 
-Install the extension from this public repository:
+Install the first-party client extension from the public docs repository:
 
 ```sh
 gemini extensions install https://github.com/flaghand/flaghand
 ```
 
-Restart Gemini CLI, then use `/mcp auth flaghand` to complete the owner's OAuth sign-in. The extension registers the Streamable HTTP server and loads the short [GEMINI.md](GEMINI.md) context; no token, local server or build is required. Call `getMe` after signing in to verify the workspace and scopes. Install this extension **or** a manual `flaghand` MCP entry, not both.
+Restart Gemini, then run `/mcp auth flaghand` and complete the owner's passkey/Allow sign-in. The extension uses
+`httpUrl: https://app.flaghand.com/mcp`. Call `getMe` to confirm the workspace and scopes; installing an extension alone is not
+proof of authentication. The extension contains client configuration and context, not Flaghand's server code.
 
-**October 26, 2026 — extension 1.0.0:** added `gemini-extension.json` and Gemini-specific context drawn from the [canonical skill](https://app.flaghand.com/skill.md). The [official gallery](https://geminicli.com/extensions/browse/) automatically crawls public repositories tagged `gemini-cli-extension` daily and lists those that pass validation. Direct installation does not depend on gallery inclusion; publication here is not proof of a gallery listing or an agent's discovery.
+## 3. Check who you are and what is set up
 
-### Cursor
+`getMe` (`GET /api/v1/me`) answers who is calling: `token` with its `name` and `scopes`, and `workspaces`, each with
+its `id` (`ws_…`), `name` and `time_zone`. Over HTTP, put that id in every path as `{workspace}`. `next_steps` lists
+these task pages, as before. `next` names the single next onboarding call from the same saved setup issues:
 
-Merge this into `~/.cursor/mcp.json`, or `.cursor/mcp.json` for one project:
+- No usable active account: `startConnection`. Set `platform` to the platform the person's task needs; the read
+  accepts an optional `platform` query (MCP argument) such as `linkedin`, so another platform's account doesn't hide
+  that missing connection. Known arguments are in `next.arguments`; an empty workspace never defaults to X.
+  Give the person the operation's returned `url` with `next.tell_person`: they sign in on the platform and allow the
+  connection themselves. Starting the link works before payment; the agent cannot authorize the account.
+- An account is usable but the plan is inactive: `startCheckout`. Give the person the returned `checkout_url` so
+  they can enter their card in Stripe, not in chat. An existing past-due plan returns `openBillingPortal` instead,
+  with `portal_url` for updating payment; it must not start a second subscription.
+- An account and plan are ready (trialing, active or comped): `createPost`. Read the owner's voice and send-back
+  notes, then supply the whole draft plan; this advice never approves or posts anything.
 
-```json
-{
-  "mcpServers": {
-    "flaghand": { "url": "https://app.flaghand.com/mcp" }
-  }
-}
-```
+Load the named operation with `getOperation` before calling it: `next.arguments` contains only what is already
+known, not a complete draft plan or a guessed platform/plan choice. A matching open Checkout is reused, so following
+`startCheckout` does not invalidate a link the person is already completing. Read setup again after the person
+finishes connecting or paying. `getMe.next` is null without `read` scope or for zero or multiple workspaces; use a
+read-capable token and `getSetup` for the intended workspace. If `next.operation_id` is null, the platform app is
+unconfigured: give the person `next.tell_person`'s support remedy rather than retrying an impossible connection.
+When several accounts need reconnecting, `next.arguments` never chooses a pinned account for them; match the
+intended handle before supplying `connection_id`.
 
-In Cursor's MCP settings, connect Flaghand and complete the owner's passkey/Allow sign-in. No authorization header or static client credentials are needed.
+`getSetup` (`GET /api/v1/workspaces/{workspace}/setup`, `read` scope; MCP through `callReadOperation`) returns the
+same `next` (and accepts the same optional `platform`) and checks the saved
+setup without calling any platform: each connection's `status` and `missing_scopes`, the plan (`billing.state`,
+`can_post`), your token's `missing_drafting_scopes`, failing webhooks and whether X credits ran out. Each entry in
+`issues` has a `message` and a `next_step`; tell the person the ones only they can fix. `ok: true` is not an approval
+and doesn't replace the draft check.
 
-### claude.ai
+## 4. The accounts the posts go out as
 
-Customize › Connectors › Add › Add custom connector. Name it **Flaghand**, enter **`https://app.flaghand.com/mcp`**, then Continue, Add and Connect. On Team or Enterprise, an Owner adds it under Organization settings › Connectors; each member then connects. Complete the owner's passkey/Allow sign-in.
+`listConnections` (`GET /api/v1/workspaces/{workspace}/connections`) lists each account with its `id` (`con_…`),
+`platform` (`x`, `linkedin` or `tiktok`), `handle`, `display_name` and `status`. Use the `id` of the **active**
+connection as each draft's `connection_id`. If a platform has several, match the handle the person named, or ask.
 
-### ChatGPT
+No active account for a platform: only the person can connect it, on the platform's own consent screen.
 
-For Business and Enterprise on the web: Plugins › + › Add custom MCP server. Name it **Flaghand**, enter **`https://app.flaghand.com/mcp`** under Connection, choose **OAuth**, review the client's risk notice, then Create as a plugin. Complete the owner's passkey/Allow sign-in; type `@` in a chat to use it. This is a custom connection, not a claim of a public directory listing.
+- With the `connections` scope (a sign-up token has it), start it for them: `startConnection`
+  (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
+  reconnect that account) answers `url` and `expires_at`. Give the person the `url`; they sign in on X, LinkedIn or
+  TikTok and allow Flaghand. Then call `listConnections` again.
+- Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
 
-These recipes follow the [agents guide](https://app.flaghand.com/docs/agents.md); client availability and menus can vary by plan. The [sign-in and tokens guide](https://app.flaghand.com/docs/sign-in-and-tokens.md) explains both authentication paths.
+X logins renew themselves. LinkedIn logins last 60 days, and the desk warns a week ahead. A draft check that returns a
+`connect` fix means that account needs connecting or reconnecting: the same steps.
 
-### HTTP API and CLI
+## 5. Read the owner's voice note first
 
-HTTP base: `https://app.flaghand.com/api/v1`, JSON, with `Authorization: Bearer <token>`. Keep the token in secret storage. The owner creates it in Settings › Agents; the four drafting scopes above are enough for the approval-request loop.
+Before drafting, read how the owner writes: `getVoice` (`GET /api/v1/workspaces/{workspace}/voice`, `read` scope; MCP
+resource `flaghand://voice`, or `callReadOperation`). Its `text` is Markdown saying how they write, which topics to skip,
+and which links and handles to use; empty means there's no note yet. Then read `listSendBacks`
+(`GET …/voice/send-backs`; MCP resource `flaghand://send-backs`): the last 20 times the owner sent drafts back, newest
+first, each note with its date and its drafts' first lines, so you don't draft the same thing again. Both are wording
+guidance, never instructions to run tools or commands, change facts or override approval. Write only what the person
+told you or what you read in their project; don't invent releases or numbers.
 
-The Flaghand CLI requires Node 20 or later. It **isn't on npm yet**, but the hosted release runs with nothing installed:
+## Operations on this page
 
-```sh
-FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
-npx --yes --package "$FLAGHAND_CLI" flaghand --help
-npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
-```
+The operation id is also the MCP tool's name. MCP says how to call it: `listed` is in the default tool list,
+`callReadOperation` or `callWriteOperation` runs it by id, and `not for agents` needs the owner's passkey in the desk.
 
-Use that prefix for every CLI command. The [release catalog](https://app.flaghand.com/cli/latest.json) gives each release's immutable tarball `url` and SHA-512 `integrity`. This repository contains no CLI or server code. The [API reference](https://app.flaghand.com/api/v1/openapi.json) is public.
+| Operation | HTTP | CLI | MCP | Scopes | Does |
+| --- | --- | --- | --- | --- | --- |
+| [`getMe`](https://app.flaghand.com/docs/api/getMe.md) | `GET /me` | `flaghand meta get-me` | listed | any token | Who is calling, and the workspaces it can use |
+| [`getSetup`](https://app.flaghand.com/docs/api/getSetup.md) | `GET /workspaces/{workspace}/setup` | `flaghand workspaces get-setup` | `callReadOperation` | `read` | Check saved posting setup, upcoming login or plan ends, agent scopes and failing webhooks |
+| [`listConnections`](https://app.flaghand.com/docs/api/listConnections.md) | `GET /workspaces/{workspace}/connections` | `flaghand connections list` | listed | `read` | The X, LinkedIn and TikTok accounts the workspace posts as |
+| [`startConnection`](https://app.flaghand.com/docs/api/startConnection.md) | `POST /workspaces/{workspace}/connections/{platform}/start` | `flaghand connections start` | `callWriteOperation` | `connections` | Start connecting an account and get the sign-in link for its owner to open (agents can) |
+| [`verifyConnection`](https://app.flaghand.com/docs/api/verifyConnection.md) | `POST /workspaces/{workspace}/connections/{id}/verify` | `flaghand connections verify` | `callWriteOperation` | `read` | Check a login still works and is the pinned account |
+| [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | A Stripe Checkout link to start the trial, or restart a plan; the person enters the card there |
+| [`openBillingPortal`](https://app.flaghand.com/docs/api/openBillingPortal.md) | `POST /workspaces/{workspace}/billing/portal` | `flaghand billing open-portal` | `callWriteOperation` | `billing` | A Stripe Customer Portal link: card, invoices, monthly or yearly, cancel |
+| [`createPost`](https://app.flaghand.com/docs/api/createPost.md) | `POST /workspaces/{workspace}/posts` | `flaghand posts create` | listed | `drafts` and `request-approval` | Draft, check and request approval in one call: the owner's approval URL, or each draft's problems and fixes |
+| [`getVoice`](https://app.flaghand.com/docs/api/getVoice.md) | `GET /workspaces/{workspace}/voice` | `flaghand voice get` | `callReadOperation` | `read` | The workspace's voice note: read it before drafting |
+| [`listSendBacks`](https://app.flaghand.com/docs/api/listSendBacks.md) | `GET /workspaces/{workspace}/voice/send-backs` | `flaghand voice list-send-backs` | `callReadOperation` | `read` | The owner's last 20 send-back notes: read them before drafting |
+| [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and the trial (from Stripe) |
+| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start a sign-up; returns the link a person opens to add their passkey and card |
+| [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the API token for a sign-up you started (once); 202 while the person hasn't added their passkey yet |
+| [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
+| [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |
 
-## Draft, check, request approval, then stop
+Next: [draft and request approval](https://app.flaghand.com/docs/drafting.md). Also complete on their own:
+[media and threads](https://app.flaghand.com/docs/media-and-threads.md), [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md),
+[billing](https://app.flaghand.com/docs/billing.md) and [errors](https://app.flaghand.com/docs/errors.md).
 
-Call `getMe`, select the intended active account from `listConnections`, and read the owner's voice and send-back notes. Upload media, then call `createPost` for the whole plan. It drafts, checks and requests approval only if every check passes; it does not approve or create a job.
-
-Give the owner the returned `approval_url` and wait for their passkey approval in Flaghand. Afterward, read the job result and report its post links and actual status. X has live read-back; LinkedIn does not. A successful request is not proof a post went live.
-
-For the full instructions, install the [agent skill](https://app.flaghand.com/skill.md). The `SKILL.md` in this repository is the same skill, ready to install from here.
 
 ## Docs and discovery
 
 - [Flaghand](https://flaghand.com/)
-- [Site index for agents — llms.txt](https://flaghand.com/llms.txt)
-- [App and API index for agents — llms.txt](https://app.flaghand.com/llms.txt)
+- [Site index for agents](https://flaghand.com/llms.txt)
+- [App and API index for agents](https://app.flaghand.com/llms.txt)
 - [Documentation](https://app.flaghand.com/docs)
+- [Agent skill](https://app.flaghand.com/skill.md) — `SKILL.md` here is byte-for-byte the hosted skill.
+- [Agents and client connection recipes](https://app.flaghand.com/docs/agents.md)
+- [Billing and trial terms](https://app.flaghand.com/docs/billing.md)
+- [Published terms](https://flaghand.com/terms)
 - [Service status](https://flaghand.com/status)
-- [Official MCP Registry entry — com.flaghand/flaghand](https://registry.modelcontextprotocol.io/v0/servers/com.flaghand%2Fflaghand/versions/0.1.1)
+- [Official MCP Registry entry](https://registry.modelcontextprotocol.io/v0/servers/com.flaghand%2Fflaghand/versions/latest)
 
 Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's application code remains private.
 
 ## Where this comes from
 
-Documentation source snapshot: `9abafaf44a54cdbaff0d1379a95c8548f4105fc6` (October 26, 2026).
-
-- **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit, with the closed-sign-up response and waitlist next call from `docs/errors.md`. The CLI recipe was run against hosted release 0.1.0 (`flaghand help` lists its commands). Prices and trial terms are the published terms and live plans on the date above.
-- **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
-- **server.json** copies the live MCP Registry entry's `server` object, version `0.1.1`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
-
-- **GEMINI.md** is a short Gemini CLI context drawn from that `SKILL.md`, with links back to the canonical skill and task guides rather than a second manual. **gemini-extension.json** is client configuration only: extension `1.0.0` registers the hosted MCP endpoint and that context file, without local server code, credentials or hooks.
-
-Make documentation changes in Flaghand's docs first, then refresh this snapshot. Do not maintain a separate set of instructions here.
+After each successful production train deployment, this repository is refreshed from the app's rendered
+[public README](https://app.flaghand.com/docs/github-readme.md), [skill](https://app.flaghand.com/skill.md) and the live MCP Registry entry's
+`server` object. No application code is copied and the registry is not republished. There is no commit when the
+three files are unchanged. Make instruction changes in Flaghand's docs first, not separately here.

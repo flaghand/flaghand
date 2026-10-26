@@ -1,30 +1,30 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "com.flaghand/flaghand",
   "description": "Your agent starts at flaghand.com/llms.txt, signs you up, drafts X and LinkedIn posts; you approve.",
-  "title": "Flaghand",
-  "version": "0.1.1",
-  "websiteUrl": "https://flaghand.com",
   "icons": [
     {
-      "src": "https://flaghand.com/assets/icon.svg",
       "mimeType": "image/svg+xml",
       "sizes": [
         "any"
-      ]
+      ],
+      "src": "https://flaghand.com/assets/icon.svg"
     },
     {
-      "src": "https://flaghand.com/assets/icon-512.png",
       "mimeType": "image/png",
       "sizes": [
         "512x512"
-      ]
+      ],
+      "src": "https://flaghand.com/assets/icon-512.png"
     }
   ],
+  "name": "com.flaghand/flaghand",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://app.flaghand.com/mcp"
     }
-  ]
+  ],
+  "title": "Flaghand",
+  "version": "0.1.1",
+  "websiteUrl": "https://flaghand.com"
 }
