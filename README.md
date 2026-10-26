@@ -1,6 +1,6 @@
-# Flaghand: MCP server for AI agents — owners approve and schedule X (Twitter) and LinkedIn posts
+# Flaghand: MCP server for AI agents — owners approve and schedule X (Twitter), LinkedIn and TikTok posts
 
-An MCP server for AI agents to draft X (Twitter) and LinkedIn posts. The owner uses a passkey to approve the exact text, media, account and time; Flaghand posts exactly that, now or on the approved schedule.
+An MCP server for AI agents to draft X (Twitter), LinkedIn and TikTok posts. The owner uses a passkey to approve the exact text, media, account and time; Flaghand posts exactly that, now or on the approved schedule (TikTok: when the owner approves it).
 
 **Agents draft, upload media, check and request approval. Agents never approve, schedule, post, start a waiting job or send a DM for anyone.** Request approval through Flaghand, not in chat. Only the owner's passkey approval creates a posting job.
 
@@ -101,7 +101,7 @@ Call `getMe`, select the intended active account from `listConnections`, and rea
 
 Give the owner the returned `approval_url` and wait for their passkey approval in Flaghand. Afterward, read the job result and report its post links and actual status. X has live read-back; LinkedIn does not. A successful request is not proof a post went live.
 
-For the full instructions, install the [ready-to-use agent skill](https://app.flaghand.com/skill.md). The `SKILL.md` in this repository preserves its source template; use the hosted, product-resolved version for installation.
+For the full instructions, install the [agent skill](https://app.flaghand.com/skill.md). The `SKILL.md` in this repository is the same skill, ready to install from here.
 
 ## Docs and discovery
 
@@ -119,7 +119,7 @@ Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's ap
 Documentation source snapshot: `14970fb5f18f57090f8a1dfaa77a4eec912a7712` (October 26, 2026).
 
 - **README.md** summarizes Flaghand's docs: `docs/overview.md`, `docs/setup.md`, `docs/agents.md`, `docs/sign-in-and-tokens.md` and `docs/billing.md` at that commit. Prices and trial terms are the published terms and live plans on the date above.
-- **SKILL.md** copies the body of `docs/skill.md` at that commit unchanged. Only its Agent Skills frontmatter has the product name filled in. Its source placeholders are `{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com and `{{env}}` = FLAGHAND; the hosted skill resolves them.
+- **SKILL.md** is `docs/skill.md` at that commit with its placeholders filled in (`{{product}}` = Flaghand, `{{cli}}` = flaghand, `{{origin}}` = https://app.flaghand.com, `{{env}}` = FLAGHAND). It is byte-for-byte the hosted skill at https://app.flaghand.com/skill.md as served on October 26, 2026.
 - **server.json** copies the live MCP Registry entry's `server` object, version `0.1.0`, retrieved on October 26, 2026. It is a registry snapshot, not an independently authored configuration or a registry republish.
 
 Make documentation changes in Flaghand's docs first, then refresh this snapshot. Do not maintain a separate set of instructions here.
