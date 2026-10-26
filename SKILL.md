@@ -34,6 +34,19 @@ secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or 
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
 
+For a terminal agent, Node 20 or later runs the hosted CLI with no install or checkout (it isn't on npm yet):
+
+```sh
+FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
+npx --yes --package "$FLAGHAND_CLI" flaghand --help
+npx --yes --package "$FLAGHAND_CLI" flaghand plans --json
+```
+
+Use that prefix for every CLI command, including `signup` when sign-up is open and `drafts wait`. The catalog's
+`url` is immutable and its `integrity` is the tarball's SHA-512 in npm SRI format; `version` and `commit` identify
+the release built with the app. Keep the URL to pin it. After npm publication, prefer `npx --yes flaghand`; hosted
+versioned URLs keep working.
+
 Call `getMe` (`GET /api/v1/me`) to confirm the workspace and scopes. `workspace` is optional in MCP: it defaults to
 the token's workspace. Call `listConnections` and select the intended **active** account's `id` as `connection_id`.
 If the server lists a compact drafting toolset, use `getOperation` for an unlisted operation's schema, then
