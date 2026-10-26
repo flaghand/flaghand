@@ -166,8 +166,18 @@ No active account for a platform: only the person can connect it, on the platfor
   the owner's passkey approval. They sign in on the platform and allow Flaghand; then call `listConnections` again.
 - Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
 
-X logins renew themselves. LinkedIn logins last 60 days, and the desk warns a week ahead. A draft check that returns a
-`connect` fix means that account needs connecting or reconnecting: the same steps.
+X logins renew themselves, using the app that issued each login. New X connections use Flaghand's publishing app
+and never request DM access. LinkedIn logins last 60 days, and the desk warns a week ahead; accounts that LinkedIn gives
+a refresh token renew automatically. A draft check that returns a `connect` fix means that account needs connecting or
+reconnecting: the same steps. Reconnecting an existing connection accepts only its pinned account; to add a different
+account, start without `connection_id`.
+
+The owner can disconnect in Settings (`DELETE /api/v1/workspaces/{workspace}/connections/{id}`, owner session only),
+even if billing has lapsed. Credentials are deleted immediately and pending posts and follow-ups are canceled before
+Flaghand asks X or TikTok to revoke the grant. If the platform is unavailable, the local deletion still stands;
+remove the app in the platform's settings too. LinkedIn has no self-serve revoke endpoint, so remove the app there as
+well. A platform request already in flight cannot be recalled. An agent can start a connection and read its health,
+but cannot disconnect, approve, schedule or post.
 
 ## 5. Read the owner's voice note first
 
