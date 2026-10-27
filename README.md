@@ -130,6 +130,8 @@ MCP is optional, not the sign-up transport. Use HTTP for `listPlans`, `startSign
 when no MCP tools are connected. Capture the ready claim's `token` directly into secret storage, not tool output;
 keep the `workspace_id` too. The person only opens the returned sign-up, payment and account-consent links. A claim
 is collected once: if you already saved its token, reuse it rather than claiming again or starting another sign-up.
+Read the token from that storage inside every command; never retype it from earlier output, where some clients show
+secrets as `***` or `<redacted>`.
 
 With the token available to your script as `FLAGHAND_TOKEN`, call the API directly. This curl example passes the
 header through stdin so the token is not in process arguments; do not enable shell tracing or curl verbose output:
