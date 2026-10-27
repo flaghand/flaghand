@@ -54,8 +54,10 @@ add `https://app.flaghand.com/mcp` and sign in with the owner's passkey, workspa
 and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
-For an existing account without OAuth, the owner creates a workspace token with those four scopes in the desk. Keep
-it in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. The HTTP API base is
+While sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
+owner signs in with their passkey and allows this agent, and `claimSignup` returns a token with those four scopes.
+While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
+in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. The HTTP API base is
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
 
