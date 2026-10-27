@@ -111,11 +111,12 @@ instructions, shell history or chat. A skill is instructions, not credential sto
 - **macOS default:** Keychain generic-password service/item `flaghand`, account `https://app.flaghand.com` (the server origin).
   Later CLI commands and `flaghand mcp` retrieve it automatically; use `flaghand me --json` to verify, not a command that
   prints the token. If Keychain saving fails, it errors; it does not silently switch to a file.
-- **Linux and other non-macOS systems:** the CLI uses `$XDG_CONFIG_HOME/flaghand/credentials.json`, or
+- **Windows, Linux and other non-macOS systems:** the CLI uses `$XDG_CONFIG_HOME/flaghand/credentials.json`, or
   `~/.config/flaghand/credentials.json` when `XDG_CONFIG_HOME` isn't set. It is an **unencrypted JSON file**, keyed by
   origin, with file mode `0600` (owner read/write); newly created directories use `0700`. This is not a Linux
   keyring integration. `FLAGHAND_TOKEN_STORE=file` selects this backend on macOS too. Keep it outside the repository;
-  if policy requires encrypted storage, use an approved secret manager and inject `FLAGHAND_TOKEN` instead.
+  On Windows these POSIX modes do not set Windows ACLs: use a private user directory or your approved secret manager.
+  If policy requires encryption, inject `FLAGHAND_TOKEN` from that manager instead (`$env:FLAGHAND_TOKEN` in PowerShell).
 - **Same origin and profile:** `FLAGHAND_TOKEN` overrides the saved CLI login. Otherwise it is found using
   `FLAGHAND_URL` (default `https://app.flaghand.com`), the same OS user/home and, for the file backend, the same `XDG_CONFIG_HOME` and
   store selection. An invalid environment token can therefore mask a valid saved login. A different machine or profile
@@ -194,6 +195,9 @@ header through stdin so the token is not in process arguments; do not enable she
 printf 'Authorization: Bearer %s\n' "$FLAGHAND_TOKEN" |
   curl --fail-with-body --silent --show-error --header @- https://app.flaghand.com/api/v1/me
 ```
+```powershell
+"Authorization: Bearer $env:FLAGHAND_TOKEN" | curl --fail-with-body --silent --show-error --header '@-' https://app.flaghand.com/api/v1/me
+```
 
 Read `getBilling` (`GET /api/v1/workspaces/{workspace}/billing`) next. A ready claim proves account creation or
 explicit Allow, not payment. During `starting`, `can_post: false` is intentional: continue connecting and drafting
@@ -207,8 +211,7 @@ successful connection, and installing a server does not finish the user's task.
 For **later Claude Code sessions**, the agent can register the server itself:
 
 ```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp \
-  --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
+claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
 ```
 
 The single quotes are intentional: Claude Code stores the literal environment-variable reference, not the token.
@@ -233,16 +236,31 @@ runs it with `{"operation_id": "getSetup", "arguments": {}}`; each refuses the o
 In MCP, `workspace` is optional and defaults to your token's workspace. The operation tables on these pages say which
 tool runs each operation.
 
+### Shells, including Windows
+
+[Codex on native Windows](https://developers.openai.com/codex/windows/) runs PowerShell;
+[Claude Code on Windows](https://code.claude.com/docs/en/setup#install-on-native-windows) uses Git Bash for its Bash
+tool and can also use PowerShell; without Git Bash it uses PowerShell. WSL uses Linux shells. Checked October 27, 2026. Use the variant matching the **agent's tool**,
+not the terminal that launched it. Single-line commands below work in both sh and PowerShell 7; `@file` is quoted to
+avoid PowerShell splatting. Write shown JSON to UTF-8 files with your file tool, not shell-quoted JSON arguments.
+
 The CLI needs Node 20 or later, but no installed package or source checkout. It isn't on npm yet; run the hosted
 release with `npx`:
 
+sh / Bash:
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
-npx --yes --package "$FLAGHAND_CLI" flaghand --help
-npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
+```
+PowerShell 7:
+```powershell
+$FLAGHAND_CLI = (Invoke-RestMethod https://app.flaghand.com/cli/latest.json).url
+```
+Then, in either shell:
+```sh
+npx --yes --package "$FLAGHAND_CLI" flaghand --url https://app.flaghand.com sign-up list-plans --json
 ```
 
-Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand` prefix for any CLI command, including `signup` when
+Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand --url https://app.flaghand.com` prefix for any CLI command, including `signup` when
 sign-up is open, `connections wait` and `drafts wait`. The catalog includes the version, source commit and SHA-512
 `integrity` of its immutable tarball. Keep its URL to pin a release; fetching the catalog again picks the current one. `npx` uses its
 cache, not a project install. Once the package is published, the preferred command will be `npx --yes flaghand`;

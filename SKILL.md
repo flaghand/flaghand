@@ -85,8 +85,7 @@ The agent can prepare MCP for **later sessions**, with `FLAGHAND_TOKEN` supplied
 that launches Claude Code. Single quotes save a literal environment reference, never the token itself:
 
 ```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp \
-  --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
+claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
 ```
 
 Keep using HTTP now if those tools are not available; call MCP `getMe` in the later session before claiming it works.
@@ -108,17 +107,23 @@ for the person. The HTTP API base is
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
 
-For a terminal agent, Node 20 or later runs the hosted CLI with no install or checkout (it isn't on npm yet):
+Optional hosted CLI (Node 20+, no checkout; not on npm yet):
 
+sh / Bash:
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
-npx --yes --package "$FLAGHAND_CLI" flaghand --help
-npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
+```
+PowerShell 7:
+```powershell
+$FLAGHAND_CLI = (Invoke-RestMethod https://app.flaghand.com/cli/latest.json).url
+```
+Then, in either shell:
+```sh
+npx --yes --package "$FLAGHAND_CLI" flaghand --url https://app.flaghand.com sign-up list-plans --json
 ```
 
-Use that prefix for every CLI command, including `signup` when sign-up is open, `connections wait` and `drafts wait`.
-The catalog's `url` is immutable and its `integrity` is the tarball's SHA-512 in npm SRI format; `version` and `commit` identify
-the release built with the app. Keep the URL to pin it. After npm publication, prefer `npx --yes flaghand`; hosted
+Use that prefix (including `--url`) for every CLI command: `signup`, `connections wait`, `drafts wait`, or `--help`.
+The catalog has the immutable URL, SHA-512 integrity, version and source commit; keep its URL to pin a release. After npm publication, prefer `npx --yes flaghand`; hosted
 versioned URLs keep working.
 
 Call `getMe` (`GET /api/v1/me`) to confirm the workspace and scopes. Follow its `next.operation_id`:
