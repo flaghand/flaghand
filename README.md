@@ -283,8 +283,10 @@ expires, a `lapsed` workspace needs Billing before another draft.
   described in step 4, without asking them to report completion. Starting the link works before payment; the agent
   cannot authorize the account.
 - An account is usable but the workspace has lapsed, outside its card-free start: `startCheckout`. Relay its
-  `for_person` unchanged alongside `checkout_url` so they can enter their card in Stripe, not in chat. An existing past-due plan returns
-  `openBillingPortal` instead, with `portal_url` for updating payment; it must not start a second subscription.
+  `for_person` unchanged alongside `checkout_url` so they can enter their card in Stripe, not in chat. For an
+  `incomplete`, `unpaid` or `paused` subscription, that same URL recovers the existing plan; follow `next_step`, not a new
+  Checkout or sign-up. An existing past-due plan uses `openBillingPortal` instead, with `portal_url` for updating payment;
+  it must not start a second subscription.
 - An account is usable and the workspace is `starting`, trialing, active or comped: `createPost`. During `starting`,
   draft without a billing wait and give the owner the approval link with its card step. Read the owner's voice and
   send-back notes, then supply the whole draft plan; this advice never approves or posts anything.
