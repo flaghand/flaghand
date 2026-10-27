@@ -35,10 +35,13 @@ The docs are one page per task, each complete on its own: [set up and connect](h
 If the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
 use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. Current terms are
 $19/month, or founding $149 for the first year, then $190/year while offered; read plans for current terms. The person
-adds a passkey and reaches `/welcome`: no Checkout, card or Stripe customer at sign-up. Keep `claim_code` private and
-use `claimSignup` after they return; pending means wait for the passkey, not start another sign-up. Honor
-`Retry-After` between turns or use the CLI's quiet `signup wait`; never loop pending calls into the conversation.
-Save the ready token in secret storage.
+adds a passkey and reaches `/welcome`: no Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
+like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
+anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
+history or shared logs. Use `claimSignup` after they return; pending means wait for the passkey, not start another
+sign-up. Honor `Retry-After` between turns or use the CLI's quiet `signup wait @/private/path/signup.json` with the saved
+start reply (or plain code file); `signup wait -` reads stdin. Never loop pending calls into the conversation.
+Write the claim answer to a private file before printing anything, then save the ready token in secret storage.
 
 Call `getMe` and `getSetup` and follow their `next` guidance. An eligible, never-subscribed workspace is `starting`,
 with `free_until` (or null if the free start does not expire) and `can_post: false`. Read `free_start` in
@@ -96,7 +99,10 @@ They get only `read`, `drafts`, `media` and `request-approval`. Every MCP reques
 While sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
 owner signs in with their passkey and allows this agent, and `claimSignup` returns a token with those four scopes.
 While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
-in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. The HTTP API base is
+in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. Write `claimSignup`'s
+answer to a private file before printing anything. If its token is lost anyway, claim again with the same code within
+7 days of the passkey or Allow: the same `token_id` comes back with a new secret and the earlier one stops working, with no step
+for the person. The HTTP API base is
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
 

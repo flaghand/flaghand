@@ -180,9 +180,10 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
 ### Claude Code: finish in this session
 
 MCP is optional, not the sign-up transport. Use HTTP for `listPlans`, `startSignup` and `claimSignup` above even
-when no MCP tools are connected. Capture the ready claim's `token` directly into secret storage, not tool output;
-keep the `workspace_id` too. The person only opens the returned sign-up, payment and account-consent links. A claim
-is collected once: if you already saved its token, reuse it rather than claiming again or starting another sign-up.
+when no MCP tools are connected. Write the ready claim's answer to a private file before printing anything, then
+move its `token` into secret storage, never into tool output; keep the `workspace_id` too. The person only opens the
+returned sign-up, payment and account-consent links. If you already saved its token, reuse it rather than claiming
+again (a repeat claim replaces it) or starting another sign-up; if you lost it, claim again with the same code.
 Read the token from that storage inside every command; never retype it from earlier output, where some clients show
 secrets as `***` or `<redacted>`.
 
@@ -393,7 +394,7 @@ The operation id is also the MCP tool's name. MCP says how to call it: `listed` 
 | [`listSendBacks`](https://app.flaghand.com/docs/api/listSendBacks.md) | `GET /workspaces/{workspace}/voice/send-backs` | `flaghand voice list-send-backs` | `callReadOperation` | `read` | The owner's last 20 send-back notes: read them before drafting |
 | [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and free-start policy |
 | [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: a new owner adds a passkey with no card; an existing owner signs in and allows the agent; never reveals whether the email has an account |
-| [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token once; 202 until the person creates their account or allows the agent |
+| [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token; 202 until the person creates their account or allows the agent |
 | [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
 | [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |
 
