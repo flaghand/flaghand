@@ -186,8 +186,8 @@ npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
 ```
 
 Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand` prefix for any CLI command, including `signup` when
-sign-up is open and `drafts wait`. The catalog includes the version, source commit and SHA-512 `integrity` of its
-immutable tarball. Keep its URL to pin a release; fetching the catalog again picks the current one. `npx` uses its
+sign-up is open, `connections wait` and `drafts wait`. The catalog includes the version, source commit and SHA-512
+`integrity` of its immutable tarball. Keep its URL to pin a release; fetching the catalog again picks the current one. `npx` uses its
 cache, not a project install. Once the package is published, the preferred command will be `npx --yes flaghand`;
 the hosted versioned URLs will keep working.
 
@@ -221,7 +221,8 @@ these task pages, as before. `next` names the single next onboarding call from t
   accepts an optional `platform` query (MCP argument) such as `linkedin`, so another platform's account doesn't hide
   that missing connection. Known arguments are in `next.arguments`; an empty workspace never defaults to X.
   Relay the operation's returned `for_person` unchanged alongside `url`, rather than paraphrasing `next.tell_person`:
-  they sign in on the platform and allow the connection themselves. Starting the link works before payment; the agent
+  they sign in on the platform and allow the connection themselves. Then wait for the returned connection attempt as
+  described in step 4, without asking them to report completion. Starting the link works before payment; the agent
   cannot authorize the account.
 - An account is usable but the plan is inactive: `startCheckout`. Relay its `for_person` unchanged alongside
   `checkout_url`; they enter their card in Stripe, not in chat. An existing past-due plan returns `openBillingPortal` instead,
@@ -231,10 +232,11 @@ these task pages, as before. `next` names the single next onboarding call from t
 
 Load the named operation with `getOperation` before calling it: `next.arguments` contains only what is already
 known, not a complete draft plan or a guessed platform/plan choice. A matching open Checkout is reused, so following
-`startCheckout` does not invalidate a link the person is already completing. Read setup again after the person
-finishes connecting or paying. `getMe.next` is null without `read` scope or for zero or multiple workspaces; use a
-read-capable token and `getSetup` for the intended workspace. If `next.operation_id` is null, the platform app is
-unconfigured: give the person `next.tell_person`'s support remedy rather than retrying an impossible connection.
+`startCheckout` does not invalidate a link the person is already completing. Read setup again after the connection
+attempt is `connected` or the person finishes paying. `getMe.next` is null without `read` scope or for zero or multiple
+workspaces; use a read-capable token and `getSetup` for the intended workspace. If `next.operation_id` is null, the
+platform app is unconfigured: give the person `next.tell_person`'s support remedy rather than retrying an impossible
+connection.
 When several accounts need reconnecting, `next.arguments` never chooses a pinned account for them; match the
 intended handle before supplying `connection_id`.
 
@@ -255,10 +257,29 @@ No active account for a platform: only the person can connect it, on the platfor
 
 - With the `connections` scope (a new-account claim has it; an existing-owner grant does not), start it for them: `startConnection`
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
-  reconnect that account) answers `url`, `for_person` and `expires_at`. Relay `for_person` unchanged alongside `url`;
-  it names the platform (and the pinned account on reconnect), explains consent and says that nothing posts without
-  the owner's passkey approval. They sign in on the platform and allow Flaghand; then call `listConnections` again.
+  reconnect that account) answers `url`, `for_person`, `attempt_id` (`cat_…`) and `expires_at`. Relay `for_person`
+  **unchanged** alongside `url`; it names the platform (and the pinned account on reconnect), explains consent and
+  says that nothing posts without the owner's passkey approval. They sign in on the platform and allow Flaghand.
+  Do not name or guess any button on the page.
 - Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
+
+**After handing off the URL, wait for that attempt without asking the person to report completion.** Keep its
+`attempt_id`; a pending attempt is not a reason to create another link. The consent callback tells the person to go
+back to their agent, using the agent name saved at sign-up when available. You learn the outcome from the attempt,
+not from a message from the person or repeated `listConnections` calls.
+
+- **CLI:** run `flaghand connections wait cat_… [--workspace ws_…] [--json]` once. It waits quietly, honors
+  `Retry-After`, has no client-side deadline and prints the terminal result once. `failed` or `expired` exits nonzero.
+- **HTTP:** `getConnectionAttempt` (`GET /api/v1/workspaces/{workspace}/connection-attempts/{id}`, `read` scope), with
+  the returned `cat_…` as `{id}`. Pending answers HTTP `202` with `status: "pending"` and `Retry-After: 60`; wait for
+  that interval before the next read. Terminal answers are HTTP `200` with `status: "connected"`, `"failed"` or
+  `"expired"`. `connected` includes a `connection` object; use its active account's `id` as the draft's `connection_id`.
+  A failure includes `error.code` and `error.message`; explain it instead of claiming success. Only `connected` means
+  the account connected, even though every terminal answer is HTTP `200`.
+- **MCP:** discover the schema with `getOperation {"operation_id":"getConnectionAttempt"}`, then, after handing off
+  `url`, call `callReadOperation {"operation_id":"getConnectionAttempt","arguments":{"id":"cat_…"}}`.
+  `workspace` is optional and defaults to the token's workspace. Obey `Retry-After` between pending reads; do not ask
+  the person to say when they are done or start another connection link while this attempt is pending.
 
 X logins renew themselves, using the app that issued each login. New X connections use Flaghand's publishing app
 and never request DM access. LinkedIn logins last 60 days, and the desk warns a week ahead; accounts that LinkedIn gives
@@ -294,6 +315,7 @@ The operation id is also the MCP tool's name. MCP says how to call it: `listed` 
 | [`getSetup`](https://app.flaghand.com/docs/api/getSetup.md) | `GET /workspaces/{workspace}/setup` | `flaghand workspaces get-setup` | `callReadOperation` | `read` | Check saved posting setup, upcoming login or plan ends, agent scopes and failing webhooks |
 | [`listConnections`](https://app.flaghand.com/docs/api/listConnections.md) | `GET /workspaces/{workspace}/connections` | `flaghand connections list` | listed | `read` | The X, LinkedIn and TikTok accounts the workspace posts as |
 | [`startConnection`](https://app.flaghand.com/docs/api/startConnection.md) | `POST /workspaces/{workspace}/connections/{platform}/start` | `flaghand connections start` | `callWriteOperation` | `connections` | Start connecting an account and get the sign-in link for its owner to open (agents can) |
+| [`getConnectionAttempt`](https://app.flaghand.com/docs/api/getConnectionAttempt.md) | `GET /workspaces/{workspace}/connection-attempts/{id}` | `flaghand connections get-attempt` | `callReadOperation` | `read` | Wait for the exact connection link handed to the person |
 | [`verifyConnection`](https://app.flaghand.com/docs/api/verifyConnection.md) | `POST /workspaces/{workspace}/connections/{id}/verify` | `flaghand connections verify` | `callWriteOperation` | `read` | Check a login still works and is the pinned account |
 | [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | A Stripe Checkout link to start the trial, or restart a plan; the person enters the card there |
 | [`openBillingPortal`](https://app.flaghand.com/docs/api/openBillingPortal.md) | `POST /workspaces/{workspace}/billing/portal` | `flaghand billing open-portal` | `callWriteOperation` | `billing` | A Stripe Customer Portal link: card, invoices, monthly or yearly, cancel |

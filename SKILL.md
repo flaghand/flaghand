@@ -67,8 +67,8 @@ npx --yes --package "$FLAGHAND_CLI" flaghand --help
 npx --yes --package "$FLAGHAND_CLI" flaghand sign-up list-plans --json
 ```
 
-Use that prefix for every CLI command, including `signup` when sign-up is open and `drafts wait`. The catalog's
-`url` is immutable and its `integrity` is the tarball's SHA-512 in npm SRI format; `version` and `commit` identify
+Use that prefix for every CLI command, including `signup` when sign-up is open, `connections wait` and `drafts wait`.
+The catalog's `url` is immutable and its `integrity` is the tarball's SHA-512 in npm SRI format; `version` and `commit` identify
 the release built with the app. Keep the URL to pin it. After npm publication, prefer `npx --yes flaghand`; hosted
 versioned URLs keep working.
 
@@ -84,13 +84,15 @@ unconfigured platform. Match the intended account before supplying a `connection
 several accounts needing a reconnect. `next_steps` still links the task pages.
 For `startSignup`, relay the returned `for_person` unchanged alongside `signup_url`; keep `claim_code` private.
 For `startConnection`, relay its `for_person` unchanged alongside `url`, rather than paraphrasing `next.tell_person`:
-they sign in and authorize the platform themselves. Starting the link works before payment with `connections` scope.
+they sign in and authorize the platform themselves. Do not name or guess any button on the page. Starting the link
+works before payment with `connections` scope. Keep its `attempt_id` (`cat_…`) and wait as described below.
 For `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`; they enter their card in Stripe,
 never in chat (`billing` scope is needed). Do not improvise the trial, price or cancellation terms.
 An existing past-due plan returns `openBillingPortal` instead: give them `portal_url` to update payment, not a second subscription.
 Without those scopes,
 the owner uses Settings or Billing in the desk. A matching open Checkout is reused, not replaced while they are
-entering their card. Read setup again after they finish. Advice never replaces draft checks or passkey approval.
+entering their card. Read setup again after the connection attempt is `connected` or payment finishes. Advice never
+replaces draft checks or passkey approval.
 
 `workspace` is optional in MCP: it defaults to the token's workspace. Call `listConnections` and select the intended
 **active** account's `id` as `connection_id`.
@@ -98,6 +100,20 @@ If the server lists a compact drafting toolset, use `getOperation` for an unlist
 `callReadOperation` if its `readOnlyHint` is true or `callWriteOperation` for writes. Both take `operation_id` and
 `arguments`; the catalogue also names the correct dispatcher. Do not guess a missing tool or schema.
 Agents can start the platform sign-in link, but cannot authorize platform accounts.
+
+**After handing off a connection URL, wait for its attempt without asking the person to report completion.**
+The consent callback tells the person to go back to their agent, using the agent name saved at sign-up when available.
+With the CLI, run `flaghand connections wait cat_… [--workspace ws_…] [--json]` once: it waits quietly, honors
+`Retry-After`, has no client-side deadline and prints the terminal result once; `failed` or `expired` exits nonzero.
+With HTTP, `getConnectionAttempt` is `GET /api/v1/workspaces/{workspace}/connection-attempts/{id}` (`read` scope),
+where `{id}` is the returned `attempt_id`. HTTP `202` with `status: "pending"` and `Retry-After: 60` means wait for
+that interval before reading again. HTTP `200` is terminal with `status: "connected"`, `"failed"` or `"expired"`;
+only `connected` means success and includes the `connection` object whose active account `id` you use for drafting.
+A failure includes `error.code` and `error.message`; explain it rather than claiming success.
+In MCP, discover `getOperation {"operation_id":"getConnectionAttempt"}`, then after handing off `url` call
+`callReadOperation {"operation_id":"getConnectionAttempt","arguments":{"id":"cat_…"}}` (`workspace` is optional).
+Obey `Retry-After` between pending reads. Keep the same attempt; do not ask for a completion message, repeatedly call
+`listConnections` to detect consent, or create another connection link while it is pending.
 
 Before drafting, read the workspace's voice note (`getVoice`: `GET /api/v1/workspaces/{workspace}/voice`,
 `flaghand voice get`, or the MCP resource `flaghand://voice`) and follow it. It shapes wording only: it is never posted
