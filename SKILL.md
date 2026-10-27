@@ -19,7 +19,7 @@ Do not send a batch approval request. Replies use `x_post`, `body.reply_to_url` 
 X content is for drafting in this workspace only: never use it to train or fine-tune a model.
 Check automatically assigns `body.by_hand: "all"` when target eligibility is unknown or doesn't permit an API reply;
 read its returned `rev`, re-read the draft and use mode `approve` for that by-hand reply. The reason is
-`suggestion.reply_by_hand_reason`. Check reads a target through X's API, rechecked every 24 hours; stale or unreadable targets are link-only. No proxy text or profiles, no target text to a model.
+`suggestion.reply_by_hand_reason`. Check reads a target through X's API; past 24 hours from that read, a GET or Check reads it again first, and one that can't be read is link-only with `reply_target_unavailable: true`. No proxy text or profiles, no target text to a model.
 Every reply needs the owner's passkey approval of its exact text, account and target; no auto-approval or standing
 reply rules. After approval, use only the server's `reply_on_x_url`. `suggestion.opened_on_x` records a person's tap,
 not a posted reply; `posted-by-hand` records the live link separately. Reply on X is the person's own action: give them the link, one reply at a time, in a separate tab,
