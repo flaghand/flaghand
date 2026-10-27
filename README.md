@@ -165,6 +165,8 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   token you already claimed. Neither path requires the person to copy a credential into chat.
 - **Claude apps (Free, Pro, Max):** add `https://app.flaghand.com/mcp` at Customize › Connectors › Add custom connector and sign in;
   choose Sign in now and Use Claude's published identity if shown. Free allows one custom connector.
+  
+  Once connected, enable Flaghand in this same chat and use its tools; no new chat is needed.
 - **ChatGPT Business and Enterprise/Edu, on the web:** Plugins › + › Add custom MCP server, OAuth, then sign in;
   use its published client identity or dynamic registration if offered. Developer Mode is not required in the current
   Plugins flow. Pro documents read/fetch access only; arbitrary custom-MCP access on Plus is not established by the current help page.
@@ -311,7 +313,8 @@ and doesn't replace the draft check.
 `platform` (`x`, `linkedin` or `tiktok`), `handle`, `display_name` and `status`. Use the `id` of the **active**
 connection as each draft's `connection_id`. If a platform has several, match the handle the person named, or ask.
 
-No active account for a platform: only the person can connect it, on the platform's own consent screen.
+No active account for a platform: call `startConnection` for that platform and give the person the returned link;
+only they authorize it on the platform's own consent screen. Settings is the fallback when the token lacks `connections` scope.
 
 - With the `connections` scope (a new-account claim has it; an existing-owner grant does not), start it for them: `startConnection`
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to

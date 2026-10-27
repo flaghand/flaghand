@@ -86,8 +86,10 @@ claude mcp add --scope user --transport http flaghand https://app.flaghand.com/m
 Keep using HTTP now if those tools are not available; call MCP `getMe` in the later session before claiming it works.
 The plugin's bundled server uses OAuth, not this header: if unauthenticated, use HTTP rather than asking the person
 to run `/mcp`. Interactive OAuth remains optional for a person already using Claude Code. Other OAuth-capable MCP apps
-add `https://app.flaghand.com/mcp` and sign in with the owner's passkey, workspace and Allow. They get only `read`, `drafts`, `media`
-and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
+add `https://app.flaghand.com/mcp` and sign in with the owner's passkey, workspace and Allow.
+
+In Claude apps, enable the connected connector in this same chat and use its tools; no new chat is needed.
+They get only `read`, `drafts`, `media` and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
 While sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
@@ -190,7 +192,7 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
 
 ## Draft, check and request approval in one call
 
-1. Use facts the user supplied or read their project before writing about what they shipped. Do not invent releases.
+1. Use only facts the person gave or you can verify; ask rather than invent claims, including what other people asked for. Flagging a made-up claim in `agent_note` does not make it a fact.
 2. Upload any media first with `uploadMedia`. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`;
    the local CLI/stdio MCP can take a readable `file` instead. Upload reads width, height and duration from the file.
    For animated WebP or an unusual video it cannot read, supply real `width` and `height` as digit strings (for example
@@ -230,8 +232,9 @@ JSON field. CLI: `flaghand posts create`.
   idempotency key. Repeat `mode` for every item, including unchanged drafts: it is not saved on the draft, and omitting
   it recomputes the default (`post_now` without a time). Do not create replacement drafts or change the plan's intent.
 - Merge a fix's `patch` into the body yourself, then send the **complete** body: updates replace it, not merge it.
-  Preserve a thread's whole `posts` array. Time fixes change top-level `post_at`, not the body. A `connect` fix needs
-  the owner to reconnect in the desk. Do not silently turn an automatic plan into hand-posting.
+  Preserve a thread's whole `posts` array. Time fixes change top-level `post_at`, not the body. For a `connect` fix, call
+  `startConnection` for the intended platform and pinned `connection_id`: relay its link and wait for consent as above;
+  use Settings only without `connections` scope. Do not silently turn an automatic plan into hand-posting.
 - A lost response may have completed the write. Retry the identical request with the **same** idempotency key; it
   returns the first answer without duplicates. A changed request needs a new key. Without a key, reconcile the
   saved state before retrying a write. On `rev_conflict`, read the latest draft and reapply the intended change.
