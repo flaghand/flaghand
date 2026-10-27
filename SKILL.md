@@ -25,7 +25,8 @@ reply rules. After approval, use only the server's `reply_on_x_url`. `suggestion
 not a posted reply; `posted-by-hand` records the live link separately. Reply on X is the person's own action: give them the link, one reply at a time, in a separate tab,
 window or X app, never an iframe or MCP App frame. No agent, script, extension or WebMCP tool presses Reply on X.
 
-The docs are one page per task, each complete on its own: [set up and connect](https://app.flaghand.com/docs/setup.md),
+New here? [From sign-up to the first approval request](https://app.flaghand.com/docs/first-post.md) is the short HTTP path, without
+installing anything else. The docs are also one page per task, each complete on its own: [set up and connect](https://app.flaghand.com/docs/setup.md),
 [draft and request approval](https://app.flaghand.com/docs/drafting.md), [media and threads](https://app.flaghand.com/docs/media-and-threads.md),
 [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md), [billing](https://app.flaghand.com/docs/billing.md) and
 [errors](https://app.flaghand.com/docs/errors.md). Read the one your task needs, not the whole manual.
@@ -70,14 +71,15 @@ not sandbox blocks; follow [Errors](https://app.flaghand.com/docs/errors.md).
 ## Connect
 
 Use Flaghand's MCP tools when already authenticated. **In a Claude Code conversation with no working MCP, finish
-setup and drafting in this same session over HTTP.** Read [set up and connect](https://app.flaghand.com/docs/setup.md), including
-[the same-session recipe](https://app.flaghand.com/docs/setup.md#claude-code-finish-in-this-session). Start sign-up through the public
-HTTP API when open, hand `signup_url` to the person, then claim and save the token directly into secret storage without
-printing it. Use it for `getMe`, `getBilling` (a ready claim is not payment; `starting` allows drafting without a card),
-account-consent links and the first draft. Keep the original sign-up link while the claim is pending; reuse any
-compatible add-card Checkout rather than creating another payment session. Ask the person only to open links; never
-ask them to run `/mcp`, copy a token, install software, export a variable or restart the chat. Do not stop at installing
-an MCP server.
+setup and drafting in this same session over HTTP.** Use the [short first-post path](https://app.flaghand.com/docs/first-post.md);
+[the same-session recipe](https://app.flaghand.com/docs/setup.md#claude-code-finish-in-this-session) has more detail. Start sign-up
+through the public HTTP API when open, hand `signup_url` to the person, then claim and save the token directly into
+secret storage without printing it. Use it for `getMe` and `getSetup`; reuse setup's billing and connections
+(`getBilling` reads separate details if needed). A ready claim is not payment; `starting` allows drafting without a
+card. Continue with account-consent links and the first draft. Keep the original sign-up link while the claim is
+pending; reuse any compatible add-card Checkout rather than creating another payment session. Ask the person only
+to open links; never ask them to run `/mcp`, copy a token, install software, export a variable or restart the chat.
+Do not stop at installing an MCP server.
 
 The agent can prepare MCP for **later sessions**, with `FLAGHAND_TOKEN` supplied from secret storage to the shell
 that launches Claude Code. Single quotes save a literal environment reference, never the token itself:
