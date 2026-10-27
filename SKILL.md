@@ -135,7 +135,11 @@ For `startConnection`, relay its `for_person` unchanged alongside `url`, rather 
 they sign in and authorize the platform themselves. Do not name or guess any button on the page. Starting the link
 works before payment with `connections` scope. Keep its `attempt_id` (`cat_…`) and wait as described below.
 For `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`; they enter their card in Stripe,
-never in chat (`billing` scope is needed). Do not improvise the trial, price or cancellation terms.
+never in chat (`billing` scope is needed). Pass the short `https://app.flaghand.com/pay/…` Flaghand link **verbatim**, including in
+Markdown. Never unwrap it to a raw Stripe URL, shorten it or drop any of it: Flaghand stores the full Stripe fragment
+card entry needs. Completed or expired Checkouts return to approval/Billing to review current terms and start again,
+not Stripe's dead end; GET never creates a new Checkout. Recovery links and `portal_url` are short Flaghand links too.
+Do not improvise the trial, price or cancellation terms.
 An existing past-due plan returns `openBillingPortal` instead: give them `portal_url` to update payment, not a second subscription.
 Without those scopes,
 the owner uses Settings or Billing in the desk. A matching open Checkout is reused, not replaced while they are
