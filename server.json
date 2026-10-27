@@ -21,10 +21,10 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://app.flaghand.com/mcp"
+      "url": "https://app.flaghand.com/mcp/via/registry"
     }
   ],
   "title": "Flaghand",
-  "version": "0.1.1",
-  "websiteUrl": "https://flaghand.com"
+  "version": "0.1.2",
+  "websiteUrl": "https://flaghand.com/?utm_source=mcp-directory&utm_medium=referral&utm_campaign=flaghand_launch_nov2026&utm_content=registry"
 }
