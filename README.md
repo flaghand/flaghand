@@ -70,6 +70,14 @@ it; report the status and safe diagnostic, never tokens or cookies. Settings and
 
 ## 1. An account and access to it
 
+**Returning session: check saved access first.** Read the project's credential-free access note below, then call
+`getMe` with the existing MCP connection, or `flaghand me --json` with the saved CLI login. HTTP clients use
+`GET https://app.flaghand.com/api/v1/me` with the saved token. If it confirms the intended workspace, reuse that access and read
+`getSetup` / `getBilling`; do not call `startSignup` just because this is a new conversation or MCP tools aren't loaded.
+Do not start another Checkout when the plan is already ready or the person is still finishing the existing one;
+follow [the billing wait](https://app.flaghand.com/docs/billing#waiting-for-checkout). Missing or revoked access calls for sign-in or an owner's
+replacement token, not a new account.
+
 The person already has Flaghand: they give you access in one of two ways.
 
 - **Sign in from the app.** Claude, ChatGPT and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
@@ -77,9 +85,9 @@ The person already has Flaghand: they give you access in one of two ways.
   gets a workspace token with the `read`, `drafts`, `media` and `request-approval` scopes, listed in Settings › Agents,
   where the owner can revoke it.
 - **A token.** The owner creates one in the desk, Settings › Agents › Create token (`https://app.flaghand.com/agents`), with those
-  four scopes already chosen. It is shown once. Keep it in `FLAGHAND_TOKEN` or the client's secret storage, never in a
-  draft, note, chat message or shared log. Only the owner can add `connections` (start connecting accounts), `cancel`,
-  `billing`, `webhooks` or `calendar`; a token can't create another token.
+  four scopes already chosen. It is shown once. [Save it for later sessions](https://app.flaghand.com/docs/setup#save-and-rediscover-access), never in a
+  draft, note, chat message, command argument or shared log. Only the owner can add `connections` (start connecting
+  accounts), `cancel`, `billing`, `webhooks` or `calendar`; a token can't create another token.
 
 The person has no account yet: sign-up opens with paid early access. Until then they
 can join the waitlist with `POST https://flaghand.com/api/waitlist` and `{"email": "person@example.com"}` (no email is sent, and
@@ -89,6 +97,45 @@ else works without an account.
 
 An agent that speaks the open [auth.md](https://app.flaghand.com/auth.md) agent-registration protocol can sign its person up through it
 instead: `service_auth` at `https://app.flaghand.com/agent/identity` is this same sign-up, and the claim grant collects the same token.
+
+### Save and rediscover access
+
+An environment variable alone is not persistent storage. Choose an existing approved secret manager (for example, a
+named 1Password item), the CLI's saved login below, or the MCP client's own OAuth login. Save a claimed token directly
+from the response into that store without displaying it. Do not put tokens in a repository, `.env`, project
+instructions, shell history or chat. A skill is instructions, not credential storage.
+
+- **CLI saved login:** pipe the token from your secret store or claim handler into `flaghand login --token-stdin`.
+  Login verifies `getMe` before saving. `flaghand signup` and `flaghand signup wait` save the claimed token in the same
+  store automatically, without printing it.
+- **macOS default:** Keychain generic-password service/item `flaghand`, account `https://app.flaghand.com` (the server origin).
+  Later CLI commands and `flaghand mcp` retrieve it automatically; use `flaghand me --json` to verify, not a command that
+  prints the token. If Keychain saving fails, it errors; it does not silently switch to a file.
+- **Linux and other non-macOS systems:** the CLI uses `$XDG_CONFIG_HOME/flaghand/credentials.json`, or
+  `~/.config/flaghand/credentials.json` when `XDG_CONFIG_HOME` isn't set. It is an **unencrypted JSON file**, keyed by
+  origin, with file mode `0600` (owner read/write); newly created directories use `0700`. This is not a Linux
+  keyring integration. `FLAGHAND_TOKEN_STORE=file` selects this backend on macOS too. Keep it outside the repository;
+  if policy requires encrypted storage, use an approved secret manager and inject `FLAGHAND_TOKEN` instead.
+- **Same origin and profile:** `FLAGHAND_TOKEN` overrides the saved CLI login. Otherwise it is found using
+  `FLAGHAND_URL` (default `https://app.flaghand.com`), the same OS user/home and, for the file backend, the same `XDG_CONFIG_HOME` and
+  store selection. An invalid environment token can therefore mask a valid saved login. A different machine or profile
+  does not inherit it. Remote MCP does not automatically read the CLI store: use OAuth or the
+  [client-specific token setup](https://app.flaghand.com/docs/agents.md#codex-cli).
+- **OAuth:** Claude Code and Codex keep their own OAuth credentials across sessions; reopen the same client profile
+  and configured server, then call `getMe`. The token is not in the skill or the CLI store. Flaghand's MCP OAuth
+  tokens do not expire and have no refresh token; access ends on revocation. Reauthenticate when needed, not on every
+  new conversation. OAuth's four drafting scopes do not replace a new-account claim's `connections` / `billing` scopes.
+
+For future agents, add **one credential-free line** to the project's existing `CLAUDE.md` (Claude Code) or `AGENTS.md`
+(Codex). Record only the origin, verified workspace and credential **locator**, never its value. For example:
+
+```text
+Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents only draft/check/request approval.
+```
+
+Replace that locator with the actual CLI file path, secret-manager item name, or OAuth MCP server name/profile you
+used. The line tells the next session where to recover access; it grants no access itself. Do not copy credential
+files or enrollment/claim secrets into the project. Verify `getMe` again before relying on the recorded workspace.
 
 ## 2. Connect your agent
 
@@ -101,6 +148,10 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
 - **Claude Code, optional interactive OAuth:** a person already using Claude Code can add
   `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp` and use `/mcp` themselves to sign in with a
   passkey and Allow. This interactive command is not an agent-callable tool or a prerequisite for HTTP setup.
+- **Claude Code, later sessions with a saved CLI login:** after CLI login above,
+  `claude mcp add --scope user flaghand -e FLAGHAND_URL=https://app.flaghand.com -- flaghand mcp` uses local stdio MCP and retrieves the CLI login automatically.
+  The command after `--` must be available: install the CLI or use its hosted `npx` prefix below. Remote MCP does not
+  import the CLI login; use the environment-header recipe below or the client's own OAuth login instead.
 - **Codex CLI, already in this session:** if you just collected the sign-up token, use the HTTP API below **in this
   session**. Keep the claimed token in your private credential store and pass it directly to the HTTP client; call
   `GET https://app.flaghand.com/api/v1/me`, then `getBilling` and continue setup. Do not ask the person to export a token, restart
@@ -141,9 +192,10 @@ printf 'Authorization: Bearer %s\n' "$FLAGHAND_TOKEN" |
   curl --fail-with-body --silent --show-error --header @- https://app.flaghand.com/api/v1/me
 ```
 
-Read `getBilling` (`GET /api/v1/workspaces/{workspace}/billing`) next. A ready claim proves enrollment, not payment.
-If Checkout is still open, keep the original sign-up link with the person and follow
-[waiting for Checkout](https://app.flaghand.com/docs/billing.md#waiting-for-checkout); do not create a second payment session.
+Read `getBilling` (`GET /api/v1/workspaces/{workspace}/billing`) next. A ready claim proves account creation or
+explicit Allow, not payment. During `starting`, `can_post: false` is intentional: continue connecting and drafting
+without waiting for billing. If the person has separately begun an add-card Checkout, keep its original link and
+follow [waiting for Checkout](https://app.flaghand.com/docs/billing.md#waiting-for-checkout); do not create a second payment session.
 Then use HTTP for `getSetup`, `startConnection` (hand its `url` to the person), `listConnections`, `getVoice`,
 `listSendBacks` and the first draft. See [draft and request approval](https://app.flaghand.com/docs/drafting.md) for exact bodies.
 Keep using HTTP in this conversation if newly configured MCP tools are not available; a saved config is not a
@@ -217,7 +269,9 @@ proof of authentication. The extension contains client configuration and context
 
 `getMe` (`GET /api/v1/me`) answers who is calling: `token` with its `name` and `scopes`, and `workspaces`, each with
 its `id` (`ws_…`), `name` and `time_zone`. Over HTTP, put that id in every path as `{workspace}`. `next_steps` lists
-these task pages, as before. `next` names the single next onboarding call from the same saved setup issues:
+these task pages. `next` names the single next onboarding call from the same saved setup issues. During `starting`,
+connect and draft, then hand over the approval link with its card step and `free_until` when present. Once a free start
+expires, a `lapsed` workspace needs Billing before another draft.
 
 - No usable active account: `startConnection`. Set `platform` to the platform the person's task needs; the read
   accepts an optional `platform` query (MCP argument) such as `linkedin`, so another platform's account doesn't hide
@@ -226,26 +280,28 @@ these task pages, as before. `next` names the single next onboarding call from t
   they sign in on the platform and allow the connection themselves. Then wait for the returned connection attempt as
   described in step 4, without asking them to report completion. Starting the link works before payment; the agent
   cannot authorize the account.
-- An account is usable but the plan is inactive: `startCheckout`. Relay its `for_person` unchanged alongside
-  `checkout_url`; they enter their card in Stripe, not in chat. An existing past-due plan returns `openBillingPortal` instead,
-  with `portal_url` for updating payment; it must not start a second subscription.
-- An account and plan are ready (trialing, active or comped): `createPost`. Read the owner's voice and send-back
-  notes, then supply the whole draft plan; this advice never approves or posts anything.
+- An account is usable but the workspace has lapsed, outside its card-free start: `startCheckout`. Relay its
+  `for_person` unchanged alongside `checkout_url` so they can enter their card in Stripe, not in chat. An existing past-due plan returns
+  `openBillingPortal` instead, with `portal_url` for updating payment; it must not start a second subscription.
+- An account is usable and the workspace is `starting`, trialing, active or comped: `createPost`. During `starting`,
+  draft without a billing wait and give the owner the approval link with its card step. Read the owner's voice and
+  send-back notes, then supply the whole draft plan; this advice never approves or posts anything.
 
 Load the named operation with `getOperation` before calling it: `next.arguments` contains only what is already
-known, not a complete draft plan or a guessed platform/plan choice. A matching open Checkout is reused, so following
-`startCheckout` does not invalidate a link the person is already completing. Read setup again after the connection
-attempt is `connected` or the person finishes paying. `getMe.next` is null without `read` scope or for zero or multiple
-workspaces; use a read-capable token and `getSetup` for the intended workspace. If `next.operation_id` is null, the
-platform app is unconfigured: give the person `next.tell_person`'s support remedy rather than retrying an impossible
-connection.
+known, not a complete draft plan or a guessed platform/plan choice. Call only operations your token's returned scopes
+allow; an existing-owner grant lacks `connections` and `billing`, so those owner-only setup steps stay in the product.
+A matching open Checkout is reused, so following `startCheckout` does not invalidate a link the person is already
+completing. Read setup again after the connection attempt is `connected` or the person finishes paying.
+`getMe.next` is null without `read` scope or for zero or multiple workspaces; use a read-capable token and `getSetup`
+for the intended workspace. If `next.operation_id` is null, the platform app is unconfigured: give the person
+`next.tell_person`'s support remedy rather than retrying an impossible connection.
 When several accounts need reconnecting, `next.arguments` never chooses a pinned account for them; match the
 intended handle before supplying `connection_id`.
 
 `getSetup` (`GET /api/v1/workspaces/{workspace}/setup`, `read` scope; MCP through `callReadOperation`) returns the
 same `next` (and accepts the same optional `platform`) and checks the saved
 setup without calling any platform: each connection's `status` and `missing_scopes`, the plan (`billing.state`,
-`can_post`), your token's `missing_drafting_scopes`, failing webhooks and whether X credits ran out. Each entry in
+`free_until`, `can_post`), your token's `missing_drafting_scopes`, failing webhooks and whether X credits ran out. Each entry in
 `issues` has a `message` and a `next_step`; tell the person the ones only they can fix. `ok: true` is not an approval
 and doesn't replace the draft check.
 
@@ -289,6 +345,10 @@ a refresh token renew automatically. A draft check that returns a `connect` fix 
 reconnecting: the same steps. Reconnecting an existing connection accepts only its pinned account; to add a different
 account, start without `connection_id`.
 
+Connecting and explicit identity verification are unchanged during `starting`; verification may still make a billed
+X read. Best-times refresh and automatic insights reads need an active plan and do not run during the card-free start.
+Reading stored results and ordinary best-time suggestions does not require a new platform read.
+
 The owner can disconnect in Settings (`DELETE /api/v1/workspaces/{workspace}/connections/{id}`, owner session only),
 even if billing has lapsed. Credentials are deleted immediately and pending posts and follow-ups are canceled before
 Flaghand asks X or TikTok to revoke the grant. If the platform is unavailable, the local deletion still stands;
@@ -320,14 +380,14 @@ The operation id is also the MCP tool's name. MCP says how to call it: `listed` 
 | [`startConnection`](https://app.flaghand.com/docs/api/startConnection.md) | `POST /workspaces/{workspace}/connections/{platform}/start` | `flaghand connections start` | `callWriteOperation` | `connections` | Start connecting an account and get the sign-in link for its owner to open (agents can) |
 | [`getConnectionAttempt`](https://app.flaghand.com/docs/api/getConnectionAttempt.md) | `GET /workspaces/{workspace}/connection-attempts/{id}` | `flaghand connections get-attempt` | `callReadOperation` | `read` | Wait for the exact connection link handed to the person |
 | [`verifyConnection`](https://app.flaghand.com/docs/api/verifyConnection.md) | `POST /workspaces/{workspace}/connections/{id}/verify` | `flaghand connections verify` | `callWriteOperation` | `read` | Check a login still works and is the pinned account |
-| [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | A Stripe Checkout link to start the trial, or restart a plan; the person enters the card there |
+| [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | Add a card before the first approval, or restart a plan; Checkout never approves or posts |
 | [`openBillingPortal`](https://app.flaghand.com/docs/api/openBillingPortal.md) | `POST /workspaces/{workspace}/billing/portal` | `flaghand billing open-portal` | `callWriteOperation` | `billing` | A Stripe Customer Portal link: card, invoices, monthly or yearly, cancel |
 | [`createPost`](https://app.flaghand.com/docs/api/createPost.md) | `POST /workspaces/{workspace}/posts` | `flaghand posts create` | listed | `drafts` and `request-approval` | Draft, check and request approval in one call: the owner's approval URL, or each draft's problems and fixes |
 | [`getVoiceProfile`](https://app.flaghand.com/docs/api/getVoiceProfile.md) | `GET /workspaces/{workspace}/voice/profile` | `flaghand voice get-profile` | `callReadOperation` | `read` | Read the workspace's X voice profile before drafting |
 | [`getVoice`](https://app.flaghand.com/docs/api/getVoice.md) | `GET /workspaces/{workspace}/voice` | `flaghand voice get` | `callReadOperation` | `read` | The workspace's voice note: read it before drafting |
 | [`listSendBacks`](https://app.flaghand.com/docs/api/listSendBacks.md) | `GET /workspaces/{workspace}/voice/send-backs` | `flaghand voice list-send-backs` | `callReadOperation` | `read` | The owner's last 20 send-back notes: read them before drafting |
-| [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and the trial (from Stripe) |
-| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: one link to sign up or sign in and allow the agent; never reveals whether the email has an account |
+| [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and free-start policy |
+| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: a new owner adds a passkey with no card; an existing owner signs in and allows the agent; never reveals whether the email has an account |
 | [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token once; 202 until the person creates their account or allows the agent |
 | [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
 | [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |

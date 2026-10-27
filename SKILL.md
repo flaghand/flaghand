@@ -23,6 +23,27 @@ The docs are one page per task, each complete on its own: [set up and connect](h
 [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md), [billing](https://app.flaghand.com/docs/billing.md) and
 [errors](https://app.flaghand.com/docs/errors.md). Read the one your task needs, not the whole manual.
 
+## Start without a card
+
+If the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
+use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. Current terms are
+$19/month, or founding $149 for the first year, then $190/year while offered; read plans for current terms. The person
+adds a passkey and reaches `/welcome`: no Checkout, card or Stripe customer at sign-up. Keep `claim_code` private and
+use `claimSignup` after they return; pending means wait for the passkey, not start another sign-up. Honor
+`Retry-After` between turns or use the CLI's quiet `signup wait`; never loop pending calls into the conversation.
+Save the ready token in secret storage.
+
+Call `getMe` and `getSetup` and follow their `next` guidance. An eligible, never-subscribed workspace is `starting`,
+with `free_until` (or null if the free start does not expire) and `can_post: false`. Read `free_start` in
+`GET /api/v1/plans`; its legacy `trial_days` is not the drafting duration. Drafting, uploads, connecting, owner token
+creation and OAuth Allow work without a card. Approval, scheduling, posting, best-times refresh and automatic insights
+reads do not. Connecting and explicit connection verification are unchanged; reading stored results does not start new X reads.
+Do not wait for billing before drafting while the workspace is `starting`.
+
+If the free start expires without a card, the workspace is `lapsed`: read, export and starting billing still work, but
+drafting stops. Explain HTTP 402 `workspace_inactive` and give the owner its `next_step` add-card/billing link. There are
+no new add-card reminder emails or extra approval permissions.
+
 ## If you can't reach Flaghand
 
 A sandbox can stop a request before Flaghand sees it. Claude Code cloud documents `403` with
@@ -42,9 +63,11 @@ Use Flaghand's MCP tools when already authenticated. **In a Claude Code conversa
 setup and drafting in this same session over HTTP.** Read [set up and connect](https://app.flaghand.com/docs/setup.md), including
 [the same-session recipe](https://app.flaghand.com/docs/setup.md#claude-code-finish-in-this-session). Start sign-up through the public
 HTTP API when open, hand `signup_url` to the person, then claim and save the token directly into secret storage without
-printing it. Use it for `getMe`, `getBilling` (enrollment is not payment), account-consent links and the first draft.
-Keep the original sign-up/Checkout link while pending. Ask the person only to open links; never ask them to run `/mcp`,
-copy a token, install software, export a variable or restart the chat. Do not stop at installing an MCP server.
+printing it. Use it for `getMe`, `getBilling` (a ready claim is not payment; `starting` allows drafting without a card),
+account-consent links and the first draft. Keep the original sign-up link while the claim is pending; reuse any
+compatible add-card Checkout rather than creating another payment session. Ask the person only to open links; never
+ask them to run `/mcp`, copy a token, install software, export a variable or restart the chat. Do not stop at installing
+an MCP server.
 
 The agent can prepare MCP for **later sessions**, with `FLAGHAND_TOKEN` supplied from secret storage to the shell
 that launches Claude Code. Single quotes save a literal environment reference, never the token itself:
@@ -82,8 +105,9 @@ the release built with the app. Keep the URL to pin it. After npm publication, p
 versioned URLs keep working.
 
 Call `getMe` (`GET /api/v1/me`) to confirm the workspace and scopes. Follow its `next.operation_id`:
-`startConnection` when no usable account is connected, `startCheckout` when the plan is inactive, or `createPost`
-when the account and plan are ready (trialing, active or comped). `next.arguments` contains known arguments only;
+`startConnection` when no usable account is connected, `startCheckout` when the workspace has lapsed, or `createPost`
+when the account is ready and the workspace is starting, trialing, active or comped. During starting, draft first and
+hand over the approval link with its card step rather than asking for up-front Checkout. `next.arguments` contains known arguments only;
 load the operation's schema and supply the person's platform/plan or full draft plan, never invent them. For a
 specific platform, pass `platform` to `getMe` or `getSetup` (for example `linkedin`); an empty workspace never
 chooses a platform for you. `getSetup` returns the same `next` plus diagnostic `issues`. `getMe.next` is null without
@@ -211,9 +235,16 @@ JSON field. CLI: `flaghand posts create`.
 
 ## Hand off, then report the result
 
-When `ok: true`, give the owner the returned `approval_url` and briefly say what the plan covers. **Stop there**
-until they approve in Flaghand. Do not open an approval flow on their behalf. In a synthetic first-run rehearsal,
-verify the drafts are `approval_requested`, their `approval` and `job` are null, and `listJobs` is empty.
+When `ok: true`, give the owner the returned `approval_url` and briefly say what the plan covers. A starting
+workspace's `/approve` shows the plan, price and estimated first-charge timing, with one button to add a card in Stripe
+Checkout, then returns for normal passkey approval. Checkout shows the exact trial charge date and time before card entry.
+Read `free_start` in `/api/v1/plans` for the current cutoff, whether an eligible
+card trial is enabled and its minimum measured from Checkout creation, not card addition. A new Checkout charges when
+completed if the card trial is disabled or its cutoff has passed; a compatible saved Checkout may retain its quoted date.
+Relay the actual Checkout terms, never an assumed charge date. **Payment never approves, schedules or posts.** Use this
+one approval link, not a separate up-front payment task. **Stop there** until they approve in Flaghand. Do not open an approval flow on their behalf.
+In a synthetic first-run rehearsal, verify the drafts are `approval_requested`, their `approval` and `job` are null,
+and `listJobs` is empty.
 
 After the owner's approval, follow `getDraft` or `listJobs` (`draft_id` filters jobs), then `getJob`. Report the
 post links in `job.result.urls` and, for X, the live read-back in `job.result.check`. LinkedIn has no live read-back.
@@ -229,8 +260,9 @@ time `processing`; read [TikTok's guide](https://app.flaghand.com/docs/tiktok.md
 - Any edit to an approved snapshot voids its approval. Read its state and explain that consequence before changing it.
   `owner_session_required` or `approval_required` means the owner must act in the desk, not that you should escalate
   credentials. API tokens cannot gain approval, scheduling or posting powers.
-- Errors include `code` and `message` (HTTP: `{ "error": { "code": "…", "message": "…" } }`). Explain the message and
-  resolve the stated problem; do not claim success on an error.
+- Errors include `code` and `message` (HTTP: `{ "error": { "code": "…", "message": "…" } }`), and may include
+  `next_step` with the owner's add-card/billing link. Explain the message and resolve the stated problem; do not
+  claim success on an error or treat payment as approval.
 
 Reference: the task pages above, one operation's fields and examples at `https://app.flaghand.com/docs/api/<operationId>.md`,
 [discovery](https://app.flaghand.com/llms.txt) with each page's size, the [agents guide](https://app.flaghand.com/docs/agents.md) and
