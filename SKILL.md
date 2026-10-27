@@ -192,7 +192,9 @@ Results are newest first, not best first. If a page is full (200 jobs), pass its
 `posted_before` for the next page, keeping the same account and window; do not claim more coverage than you read.
 
 Compare post 1 (`x.posts` where `position: 1` and `measured: true`) by `engagements` (likes + reposts + replies +
-quotes + bookmarks), with `views` for context. Use `posted_at`, `read_at` and `final` to distinguish a new post's
+quotes + bookmarks), with `views` for context, and by `x.score`: its views against the same account's median at the
+same age (`ratio`, `label` above, usual or below), so a new post isn't judged against older posts' larger totals; a
+score that is `not_measured` or `too_few_posts` has none. Use `posted_at`, `read_at` and `final` to distinguish a new post's
 still-changing numbers from an older post's settled ones. Missing numbers are null, not zero; never sum unmeasured
 thread replies or claim these are whole-thread results. Learn openings, length and phrasing from the best-performing
 examples' returned `text`: only post 1 as approved, not the full thread. Do not copy a past post or reuse its claims
