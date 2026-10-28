@@ -8,7 +8,7 @@ description: Draft, check and request approval for X, LinkedIn and TikTok posts 
 A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
 workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
 
-- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. Its sign-in page shows the waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
+- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. The connector's sign-in page creates the account free with a passkey, Google or an email code, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
@@ -127,7 +127,9 @@ Keep using HTTP now if those tools are not available; call MCP `getMe` in the la
 The plugin's bundled server uses OAuth, not this header: if unauthenticated, use HTTP rather than asking the person
 to run `/mcp`. Interactive OAuth remains optional for a person already using Claude Code. Other OAuth-capable MCP apps
 add `https://app.flaghand.com/mcp`; the owner uses any configured person sign-in method, chooses their workspace and explicitly Allows.
-
+No account yet? The no-account sign-up link on the connector's sign-in page creates one with a configured
+person sign-in method,
+without a card, then returns to allow the connector; no separate site sign-up is needed.
 In Claude apps, enable the connected connector in this same chat and use its tools; no new chat is needed.
 They get only `read`, `drafts`, `media` and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.

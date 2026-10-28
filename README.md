@@ -4,7 +4,7 @@ Agents draft, upload media, check and request approval. Only the owner's passkey
 account and time; Flaghand posts exactly that. **Agents never approve, schedule, post, start a waiting job or send
 a DM for anyone.** Request approval through Flaghand, not in chat.
 
-Public sign-up is **closed**. The
+Public sign-up is **open**. The
 [plans endpoint](https://app.flaghand.com/api/v1/plans) reports the current `signup_open` state. Only submit a waitlist address whose
 person asked to join. The instructions below are the same [setup guide](https://app.flaghand.com/docs/setup.md) served by the app,
 including its current CLI recipe and sign-up path.
@@ -23,7 +23,7 @@ outside the product's own approval request.** No token can do those things, so t
 ## Pick your path
 
 - **Chat apps: connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`: the same sign-in page handles both. The short guide has the Claude, ChatGPT and mobile steps. Never call `startSignup`, use API sign-up or the CLI from a chat app.
-- **No account yet?** The connector's sign-in page shows the current waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
+- **No account yet? The connector's sign-in page creates the account, free, with a passkey, Google or an email code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`.
 
 ## 1. An account and access to it
@@ -68,10 +68,101 @@ shared log. Only the owner can add `connections` (start connecting accounts), `c
 
 ### Shell/HTTP sign-up and access
 
-The person has no account yet: sign-up opens with paid early access. Until then they
-can join the waitlist with `POST https://flaghand.com/api/waitlist` and `{"email": "person@example.com"}` (no email is sent, and
-it signs them up for nothing else). `GET https://app.flaghand.com/api/v1/plans` shows the plans and the trial. Stop there: nothing
-else works without an account.
+For coding agents with a shell and HTTP clients, one agent-led path works whether or not the person already has an account: start access, give them one
+link, and collect a token when they finish. The response never says whether the email is new, pending or existing.
+
+1. `GET https://app.flaghand.com/api/v1/plans` (no sign-in) lists the plans (`monthly`, `yearly`, and `founding` while that offer
+   runs) with each `price`, `currency` and `interval`, plus the `free_start` policy. Legacy `trial_days` is not a
+   drafting-duration quote. Tell a new customer the price and current terms before they sign up.
+2. `POST https://app.flaghand.com/api/v1/signup` with `{"email": "person@example.com", "plan": "monthly", "agent_name": "Claude Code", "found_via": "MCP Registry"}`
+   (add `"time_zone": "Europe/London"` if you know it). `found_via` is optional: tell us briefly where you found
+   Flaghand if you know; it is your own report, separate from any measured directory tag. It answers `signup_url`,
+   `for_person`, `claim_code` and `expires_at` (24 hours). **The claim code is a secret like the token:** save this
+   start answer in a new private file outside the repository (`umask 077`) before printing anything. Print only
+   `for_person`, `signup_url` and the expiry, never `claim_code`; keep it out of chat, command arguments, shell history
+   and shared logs. Repeating this call, including while a sign-up is pending, makes a fresh link and claim code;
+   it doesn't invalidate earlier links.
+3. Relay `for_person` unchanged alongside `signup_url`; do not invent prices or substitute payment instructions.
+   A new customer completes sign-up with any configured method (passkey, Google, Apple or email), then reaches
+   `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. An existing
+   owner signs in with a configured method, chooses a workspace they own and explicitly clicks **Allow**. The page
+   shows the agent's name and the four scopes it gets: `read`, `drafts`, `media`, `request-approval`. No second account,
+   subscription or new passkey is needed, and the workspace's original free-start/trial dates stay unchanged. Provider
+   or email proof binds Allow to that verified person, not the address the agent typed. Signing in alone grants nothing.
+4. Collect the token with `claimSignup`: `POST https://app.flaghand.com/api/v1/signup/claim` with `{"claim_code": "clm_…"}`.
+   It answers `202 {"status": "pending"}` with `Retry-After: 60` until the new account is created or the existing
+   owner allows the agent, then
+   `200 {"status": "ready", "token": "tok_…", "workspace_id": "ws_…", "scopes": [...]}`. **Write the claim answer to a
+   private file before printing anything** (in a private user directory outside the repository, using your HTTP tool), print only its
+   `status`, `workspace_id` and `scopes`, and move the token into [persistent credential storage](https://app.flaghand.com/docs/setup#save-and-rediscover-access).
+   New accounts get every agent scope, `connections` and `billing` included; existing-account grants get only the four
+   OAuth scopes above. Read the returned `scopes`, never assume broader access. Like every token, neither can approve,
+   schedule or post. If the token is lost anyway (never saved, a dropped reply, a crashed shell), claim again with the
+   same code within 7 days of registration or Allow: the same `token_id` comes back with a new secret and `"replaced": true`,
+   and the earlier secret stops working. No person step or new sign-up is needed. Once the owner revokes a token from
+   this sign-up, its claim code makes no more.
+
+**Wait without polling into the conversation.** After relaying `for_person` with the link, ask them to tell you when
+they're back. Keep the original `signup_url` and claim code; a pending claim means registration or consent isn't
+finished, not that another sign-up is needed. Pending responses also include `next_step: "open_signup_url"` and a
+`message` with the configured sign-in choices and passkey provider/browser/device alternatives; neither says whether
+the email has an account.
+Where the CLI is installed, run `flaghand signup wait @/private/path/signup.json` once with the saved `startSignup`
+reply; it also accepts a plain code file, or `flaghand signup wait - < /private/path/claim-code` through stdin. These
+keep the code out of command arguments and shell history. It waits quietly, honors `Retry-After`, keeps the token in
+the CLI's secret storage, and answers once without printing either secret (`--json` returns `stored: true`).
+The combined `flaghand signup --email person@example.com --plan monthly --found-via "MCP Registry"` uses the same wait after showing the link; `--found-via` is optional.
+With HTTP or a remote-only client, stop this turn; when the person returns, call `claimSignup` once more. If still
+pending, leave the link with them and follow `Retry-After` between turns, not repeated tool calls in this turn.
+The hint is advice, not a rate limit or a held server request. A ready claim proves account creation or explicit
+Allow; there is no Checkout to wait for at sign-up. Read `getMe` and `getSetup`, then connect and draft in the eligible
+workspace's free start. It reports `state: "starting"`, `free_until` (null if it does not expire) and `can_post: false`. Owners can create
+tokens and allow OAuth apps without a card; the usual scopes and platform-consent rules still apply.
+
+**Keep the original link when resuming.** An unused signup link expires after 24 hours: if registration is unfinished,
+ask for a fresh `startSignup` with the same email. After registration, resume the existing account using a configured
+sign-in method rather than creating another account. The original claim code remains collectible for seven days after
+registration or consent unless revoked. If the token is lost but its code is saved, claim again to replace the secret.
+If the code is lost or stopped working, a new link lets the existing owner sign in and explicitly Allow the agent,
+with only the four OAuth scopes. Two pending links stay independent, including in the same tab: the first creates
+the account, the second uses sign-in and Allow, and each agent claims its own code. None creates a second account,
+subscription, trial or free-start window. [Interrupted sign-up and durable Checkout](https://app.flaghand.com/docs/billing.md#picking-up-an-interrupted-sign-up).
+
+When the plan is ready, give the person its `approval_url`, not a separate up-front payment task. On `/approve` they
+see the plan, price and estimated first-charge timing, use one button to add a card in Stripe Checkout, and return for
+the normal passkey approval. If they have no passkey, that same sheet first creates one, then makes the separate
+approval assertion: two taps by the person, never the agent. Checkout shows the exact trial charge date and time before
+card entry. Adding a card never approves, schedules or posts. Read `free_start` in `/api/v1/plans` for whether
+card trials are enabled, their cutoff and the minimum from Checkout creation (not card addition). A new Checkout charges
+when completed if trials are disabled or its cutoff has passed; a compatible saved Checkout may retain its quoted date.
+If the free start expires without a card, the workspace is `lapsed`: reading, export and starting billing work, but
+drafting stops. If a card trial is refused because that card already had free days, its subscription is canceled
+without starting a plan: drafting still works until the workspace's original `free_until`, then becomes read-only.
+Approval and posting stay blocked. The approval link's heading and button both say **Start your plan**; choose that
+button, or call `startCheckout` and relay its `checkout_url` and unchanged `for_person`. This next Checkout has no trial.
+Follow the billing link in `next` or a `workspace_inactive` error's `next_step`; an existing-owner grant lacks
+`billing`, so the owner handles the card step in the product. A compatible open Checkout is reused, and a finished
+one is confirmed before another can start; don't pay again just because a return or webhook was interrupted.
+
+For a separate `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`. Pass this short
+`https://app.flaghand.com/pay#…` Flaghand link **verbatim**, including its entire `#` fragment and in Markdown; do not follow it to copy Stripe's destination,
+shorten it or substitute a raw Stripe URL. Flaghand restores Stripe's complete URL, including the fragment card entry
+requires. An ended Checkout returns to the original approval or Billing page, where the person reviews current terms
+and starts a fresh Checkout if needed; opening the link never creates one by itself. It uses the saved
+Checkout terms and actual first-charge date, not a fresh trial or an invented quote. Keep each sentence with its
+own link; never reuse a sentence from an earlier Checkout. If `recovery` is `incomplete`, `unpaid` or `paused`,
+`checkout_url` instead continues that subscription's original card authentication or opens its Stripe invoice or billing
+Portal, and `next_step` explains what to do. Relay that recovery handoff, not a new-plan price or trial quote; no second subscription is created.
+For a paused subscription, the link pays its resumption invoice. Payment still never approves or posts.
+
+Current prices are $19/month, or the founding offer of $149 for the first year, then $190/year, while available.
+Always read plans for current terms. Eligibility and what each plan state allows: [billing](https://app.flaghand.com/docs/billing.md).
+
+`POST /api/v1/signup`, auth.md's sign-up alias `POST /agent/identity`, `POST /api/v1/auth/enroll`, and email
+`POST /api/v1/auth/email/request` and `/api/v1/auth/email/verify` share one approximate 30-request-per-minute allowance
+per IP at each edge location. A `429 rate_limited` includes
+`Retry-After: 60`: wait before retrying, keeping your existing link. OAuth client registration, token calls,
+enrollment options and both sign-up claim paths are not part of this allowance.
 
 
 An agent that speaks the open [auth.md](https://app.flaghand.com/auth.md) agent-registration protocol can sign its person up through it
