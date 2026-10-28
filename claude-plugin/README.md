@@ -2,7 +2,7 @@
 
 Your agents write. You approve. Flaghand posts exactly that.
 
-Flaghand is a publishing desk for X and LinkedIn, built for people and their AI agents. With this plugin, Claude can draft an X post, an X thread or a LinkedIn post, upload images with alt text, check each draft against the platform's rules and send you one approval link. Claude can't approve, schedule or post. Only you approve, on app.flaghand.com, with your passkey, signed over the exact version you saw.
+Flaghand is a publishing desk for X, LinkedIn and TikTok, built for people and their AI agents. With this plugin, Claude can draft an X post, an X thread, a LinkedIn post or a TikTok photo or video post, upload media with alt text, check each draft against the platform's rules and send you one approval link. Claude can't approve, schedule or post. Only you approve, on app.flaghand.com, with your passkey, signed over the exact version you saw.
 
 ## What's in it
 
@@ -16,14 +16,14 @@ Add it from Anthropic's directory, or in Claude Code run `/plugin marketplace ad
 
 ## Before you connect
 
-You need a Flaghand account with an active workspace plan where the tools require one, and your own X or LinkedIn connection for those platforms. Without an account, start at https://flaghand.com/llms.txt. `GET https://app.flaghand.com/api/v1/plans` says whether sign-up is open and what the plans cost.
+You need a Flaghand account with an active workspace plan where the tools require one, and your own X, LinkedIn or TikTok connection for those platforms. Without an account, start at https://flaghand.com/llms.txt. `GET https://app.flaghand.com/api/v1/plans` says whether sign-up is open and what the plans cost.
 
 ## What it sends and runs
 
-- Your content goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes only what you approved, to the X or LinkedIn account you connected.
+- Your content goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, video, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes only what you approved, to the X, LinkedIn or TikTok account you connected.
 - `/flaghand:shipped` also asks GitHub, through your own signed-in `gh`, which pull requests merged in that repository. It sends nothing else to GitHub.
-- The plugin has no hooks and no local server. During setup from a shell, the skill may have Claude call Flaghand's HTTP API, or run the Flaghand CLI with `npx` from the pinned release listed at https://app.flaghand.com/cli/latest.json. A Flaghand token, if you create one, belongs in your own secret storage, never in a draft, note or log.
-- The plugin stores nothing itself. What Flaghand keeps, and for how long: [Privacy](https://flaghand.com/privacy).
+- The plugin has no hooks and no local server, and it downloads and runs no software of its own. Besides your `git` and `gh` for `/flaghand:shipped`, Claude reaches Flaghand only through the MCP server above or, during setup from a shell, Flaghand's HTTP API at app.flaghand.com.
+- The plugin keeps no data of its own. During setup from a shell, the skill has Claude save Flaghand's sign-up and claim replies in private files outside your repository and the Flaghand token in your own secret storage, never in a draft, note or log. What Flaghand keeps, and for how long: [Privacy](https://flaghand.com/privacy).
 
 Guide: https://app.flaghand.com/docs/agents · Support: support@flaghand.com
 
