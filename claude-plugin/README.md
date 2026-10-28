@@ -20,7 +20,8 @@ You need a Flaghand account with an active workspace plan where the tools requir
 
 ## What it sends and runs
 
-- Data goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes only what you approved, to the X or LinkedIn account you connected.
+- Your content goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes only what you approved, to the X or LinkedIn account you connected.
+- `/flaghand:shipped` also asks GitHub, through your own signed-in `gh`, which pull requests merged in that repository. It sends nothing else to GitHub.
 - The plugin has no hooks and no local server. During setup from a shell, the skill may have Claude call Flaghand's HTTP API, or run the Flaghand CLI with `npx` from the pinned release listed at https://app.flaghand.com/cli/latest.json. A Flaghand token, if you create one, belongs in your own secret storage, never in a draft, note or log.
 - The plugin stores nothing itself. What Flaghand keeps, and for how long: [Privacy](https://flaghand.com/privacy).
 
