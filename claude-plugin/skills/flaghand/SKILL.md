@@ -219,7 +219,10 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
 ## Draft, check and request approval in one call
 
 1. Use only facts the person gave or you can verify; ask rather than invent claims, including what other people asked for. Flagging a made-up claim in `agent_note` does not make it a fact.
-2. Upload any media first with `uploadMedia`. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`. Upload reads width, height and duration from the file.
+2. Upload any media first with `uploadMedia`, or, for a photo on a web page or a file already online, put
+   `media_from` (the URL, or `{url, pick}`) on the body and it's imported in the same call; `importMedia` lists a
+   page's photos to pick from. Use only images the owner has the rights to post; for a page, a link card links back
+   to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`. Upload reads width, height and duration from the file.
    For animated WebP or an unusual video it cannot read, supply real `width` and `height` as digit strings (for example
    `"800"`, `"600"`) and video `duration` as a seconds string such as `"12.5"`.
 3. Call `createPost` once for the **whole plan**: each item in `drafts` has `kind`, `connection_id`, `body` and `mode`.
