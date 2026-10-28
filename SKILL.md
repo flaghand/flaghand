@@ -39,11 +39,12 @@ installing anything else. The docs are also one page per task, each complete on 
 For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
 use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. Current terms are
 $19/month, or founding $149 for the first year, then $190/year while offered; read plans for current terms. The person
-adds a passkey and reaches `/welcome`: no Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
+completes sign-up with a configured passkey, Google, Apple or email method and reaches `/welcome`: no Checkout, card
+or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
 anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
-history or shared logs. Use `claimSignup` after they return; pending means wait for the passkey, not start another
-sign-up. Honor `Retry-After` between turns or use the CLI's quiet `signup wait @/private/path/signup.json` with the saved
+history or shared logs. Use `claimSignup` after they return; pending means registration or explicit Allow is unfinished,
+not that another sign-up is needed. Honor `Retry-After` between turns or use the CLI's quiet `signup wait @/private/path/signup.json` with the saved
 start reply (or plain code file); `signup wait -` reads stdin. Never loop pending calls into the conversation.
 Write the claim answer to a private file before printing anything, then save the ready token in secret storage.
 
@@ -57,6 +58,33 @@ Do not wait for billing before drafting while the workspace is `starting`.
 If the free start expires without a card, the workspace is `lapsed`: read, export and starting billing still work, but
 drafting stops. Explain HTTP 402 `workspace_inactive` and give the owner its `next_step` add-card/billing link. There are
 no new add-card reminder emails or extra approval permissions.
+
+## Person sign-in, methods and recovery
+
+The handoff page offers passkeys first, then configured Google, Apple and email (`GET /api/v1/auth/methods`). There are
+no passwords. Email sends one link plus a six-digit code: either works once and both expire in ten minutes. Five wrong
+attempts disable that request's code, not its link. Twenty consecutive wrong codes for one address disable its codes
+across requests until a valid inbox link or fresh sign-in by another method restores them. The code stays in the
+requesting browser; the link opens a page with a Continue
+POST, so GET/mail scanners cannot use it up. Requests/checks share the signup IP bucket. A repeat within the address's
+60-second email window says check your inbox and sends nothing, whether or not the account exists.
+
+**Never collect or enter the person's inbox code, consume their email link, answer provider consent or perform a
+passkey tap for them.** Relay the returned handoff unchanged. Ordinary proof of a previously unproven primary email
+can reset old passkeys, identities, sessions and agent access; the page explains that. Existing-account sign-in still
+requires that same verified owner to choose a workspace and explicitly Allow the agent. No method adds OAuth scopes.
+
+Settings › Account lists methods and the immutable primary email (`primary_email: {email, verified, available}`).
+The primary address remains a recovery path when mail is configured, even without an explicit identity row, so a
+provider-only person can remove their sole provider identity and recover through that inbox. Without mail, another
+stored method must remain. The primary-email identity itself cannot be removed. Alternative emails can be linked but
+do not replace the primary address. Adding a method
+needs existing-passkey step-up; its authorization lasts five minutes even if its email proof lasts ten, and proving
+the primary inbox through this explicit linking flow does not reset prior access. The last passkey cannot be removed.
+Recovery through a linked method or primary email ends in adding a passkey on this device; a session alone cannot
+add another passkey while the account has one or delete an account. No-passkey deletion needs a fresh single-use
+`delete` proof bound to the owner session and workspace, not an ordinary sign-in. These are person-session operations,
+not permissions for agent tokens or MCP tools. [Full policy](https://app.flaghand.com/docs/sign-in-and-tokens.md).
 
 ## If you can't reach Flaghand: shell/HTTP clients only
 
@@ -98,18 +126,18 @@ claude mcp add --scope user --transport http flaghand https://app.flaghand.com/m
 Keep using HTTP now if those tools are not available; call MCP `getMe` in the later session before claiming it works.
 The plugin's bundled server uses OAuth, not this header: if unauthenticated, use HTTP rather than asking the person
 to run `/mcp`. Interactive OAuth remains optional for a person already using Claude Code. Other OAuth-capable MCP apps
-add `https://app.flaghand.com/mcp` and sign in with the owner's passkey, workspace and Allow.
+add `https://app.flaghand.com/mcp`; the owner uses any configured person sign-in method, chooses their workspace and explicitly Allows.
 
 In Claude apps, enable the connected connector in this same chat and use its tools; no new chat is needed.
 They get only `read`, `drafts`, `media` and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
 While sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
-owner signs in with their passkey and allows this agent, and `claimSignup` returns a token with those four scopes.
+owner signs in with a configured method and explicitly allows this agent, and `claimSignup` returns a token with those four scopes.
 While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
 in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. Write `claimSignup`'s
 answer to a private file before printing anything. If its token is lost anyway, claim again with the same code within
-7 days of the passkey or Allow: the same `token_id` comes back with a new secret and the earlier one stops working, with no step
+7 days of registration or Allow: the same `token_id` comes back with a new secret and the earlier one stops working, with no step
 for the person. The HTTP API base is
 `https://app.flaghand.com/api/v1`; send `Authorization: Bearer <token>`. The CLI, when installed, uses the same token and API.
 See [the agents guide](https://app.flaghand.com/docs/agents.md) for token setup and other clients.
@@ -279,7 +307,9 @@ Read `free_start` in `/api/v1/plans` for the current cutoff, whether an eligible
 card trial is enabled and its minimum measured from Checkout creation, not card addition. A new Checkout charges when
 completed if the card trial is disabled or its cutoff has passed; a compatible saved Checkout may retain its quoted date.
 Relay the actual Checkout terms, never an assumed charge date. **Payment never approves, schedules or posts.** Use this
-one approval link, not a separate up-front payment task. **Stop there** until they approve in Flaghand. Do not open an approval flow on their behalf.
+one approval link, not a separate up-front payment task. If the owner has no passkey, that same approval sheet first
+creates one, then asks for the separate approval assertion: two taps by the person, neither performed by the agent.
+**Stop there** until they approve in Flaghand. Do not open an approval flow on their behalf.
 In a synthetic first-run rehearsal, verify the drafts are `approval_requested`, their `approval` and `job` are null,
 and `listJobs` is empty.
 

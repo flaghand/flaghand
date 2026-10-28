@@ -15,8 +15,8 @@ Everything an agent needs before its first draft: an account, access to the work
 the accounts the posts go out as, and the owner's voice note. This page is complete on its own; the next one is
 [draft and request approval](https://app.flaghand.com/docs/drafting.md).
 
-Flaghand drafts, checks and posts X, LinkedIn and TikTok posts for a person. An agent can do every step except
-approving: only the workspace owner approves, with their passkey, and Flaghand posts only the exact snapshot they
+Flaghand drafts, checks and posts X, LinkedIn and TikTok posts for a person. An agent drafts, uploads media, checks
+and requests approval; only the workspace owner approves with their passkey, and Flaghand posts only the exact snapshot they
 approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
 outside the product's own approval request.** No token can do those things, so there is nothing to work around.
 
@@ -80,6 +80,26 @@ it; report the status and safe diagnostic, never tokens or cookies. Settings and
 
 ## 1. An account and access to it
 
+**Person sign-in is not agent access.** The page offers passkeys first, then configured Google, Apple and email
+(`GET /api/v1/auth/methods`); there are no passwords. An email contains both a link and six-digit code: either works
+once, both last ten minutes and cancel after five wrong attempts. The code is bound to the requesting browser. A link
+opens a Continue page; only its POST consumes it, never GET. Repeating a request within the address's 60-second window
+sends nothing and says check your inbox, whether the account is known or unknown. Requests/checks share the signup IP
+bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
+consume their sign-in link or sign them in from the agent's browser.
+
+Ordinary first proof of a previously unproven primary email applies the recovery-style reset of old passkeys,
+identities, sessions, tokens and delegated access; the page explains it. Existing-account sign-in still needs explicit
+Allow for the agent, bound to that verified owner, not just the email the agent typed. Settings › Account can link
+alternative methods with existing-passkey step-up without that reset. Its link authorization lasts five minutes,
+separate from a ten-minute email. The immutable primary email remains a recovery path when mail is configured, even
+without an explicit identity row; a provider-only person may then remove their sole provider identity and use that
+inbox to recover. Without mail, another stored method must remain. The primary-email identity cannot be removed, and
+a linked alternative email cannot replace the primary address. Recovery ends in adding a passkey on this device. A session alone cannot add another passkey while
+one exists or delete an account: no-passkey deletion needs a fresh purpose-bound single-use method proof. Method
+management and deletion proofs are person-session operations, not new API-token or MCP powers.
+[Sign-in, methods, recovery and deletion](https://app.flaghand.com/docs/sign-in-and-tokens.md).
+
 **Returning session: check saved access first.** Read the project's credential-free access note below, then call
 `getMe` with the existing MCP connection, or `flaghand me --json` with the saved CLI login. HTTP clients use
 `GET https://app.flaghand.com/api/v1/me` with the saved token. If it confirms the intended workspace, reuse that access and read
@@ -91,7 +111,7 @@ replacement token, not a new account.
 The person already has Flaghand: they give you access in one of two ways.
 
 - **Sign in from the app.** Claude, ChatGPT and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
-  and sign in: the owner signs in with their passkey, picks the workspace and clicks Allow. Nothing to paste. The app
+  and sign in: the owner uses any configured person sign-in method, picks the workspace and clicks Allow. Nothing to paste. The app
   gets a workspace token with the `read`, `drafts`, `media` and `request-approval` scopes, listed in Settings › Agents,
   where the owner can revoke it.
 - **A token.** The owner creates one in the desk, Settings › Agents › Create token (`https://app.flaghand.com/agents`), with those
@@ -158,7 +178,7 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   install software, copy a token or restart the chat. Configure MCP for a later session without interrupting this one.
 - **Claude Code, optional interactive OAuth:** a person already using Claude Code can add
   `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp` and use `/mcp` themselves to sign in with a
-  passkey and Allow. This interactive command is not an agent-callable tool or a prerequisite for HTTP setup.
+  configured person method and explicitly Allow. This interactive command is not an agent-callable tool or a prerequisite for HTTP setup.
 - **Claude Code, later sessions with a saved CLI login:** after CLI login above,
   `claude mcp add --scope user flaghand -e FLAGHAND_URL=https://app.flaghand.com -- flaghand mcp` uses local stdio MCP and retrieves the CLI login automatically.
   The command after `--` must be available: install the CLI or use its hosted `npx` prefix below. Remote MCP does not
@@ -294,7 +314,7 @@ Install the first-party client extension from the public docs repository:
 gemini extensions install https://github.com/flaghand/flaghand
 ```
 
-Restart Gemini, then run `/mcp auth flaghand` and complete the owner's passkey/Allow sign-in. The extension uses
+Restart Gemini, then run `/mcp auth flaghand` and complete the owner's configured person sign-in and explicit Allow. The extension uses
 `httpUrl: https://app.flaghand.com/mcp`. Call `getMe` to confirm the workspace and scopes; installing an extension alone is not
 proof of authentication. The extension contains client configuration and context, not Flaghand's server code.
 
@@ -407,7 +427,8 @@ told you or what you read in their project; don't invent releases or numbers.
 ## Operations on this page
 
 The operation id is also the MCP tool's name. MCP says how to call it: `listed` is in the default tool list,
-`callReadOperation` or `callWriteOperation` runs it by id, and `not for agents` needs the owner's passkey in the desk.
+`callReadOperation` or `callWriteOperation` runs it by id, and `not for agents` needs the person's session and any
+required fresh proof in the desk; no agent token can call it.
 
 | Operation | HTTP | CLI | MCP | Scopes | Does |
 | --- | --- | --- | --- | --- | --- |
@@ -424,7 +445,7 @@ The operation id is also the MCP tool's name. MCP says how to call it: `listed` 
 | [`getVoice`](https://app.flaghand.com/docs/api/getVoice.md) | `GET /workspaces/{workspace}/voice` | `flaghand voice get` | `callReadOperation` | `read` | The workspace's voice note: read it before drafting |
 | [`listSendBacks`](https://app.flaghand.com/docs/api/listSendBacks.md) | `GET /workspaces/{workspace}/voice/send-backs` | `flaghand voice list-send-backs` | `callReadOperation` | `read` | The owner's last 20 send-back notes: read them before drafting |
 | [`listPlans`](https://app.flaghand.com/docs/api/listPlans.md) | `GET /plans` | `flaghand sign-up list-plans` | `callReadOperation` | none | The plans on sale, their prices and free-start policy |
-| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: a new owner adds a passkey with no card; an existing owner signs in and allows the agent; never reveals whether the email has an account |
+| [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: a new owner creates an account with a configured sign-in method and no card; an existing owner signs in and allows the agent; never reveals whether the email has an account |
 | [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token; 202 until the person creates their account or allows the agent |
 | [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
 | [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |
