@@ -120,7 +120,7 @@ sh / Bash:
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
 ```
-PowerShell 7:
+PowerShell:
 ```powershell
 $FLAGHAND_CLI = (Invoke-RestMethod https://app.flaghand.com/cli/latest.json).url
 ```

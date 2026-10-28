@@ -206,7 +206,7 @@ printf 'Authorization: Bearer %s\n' "$FLAGHAND_TOKEN" |
   curl --fail-with-body --silent --show-error --header @- https://app.flaghand.com/api/v1/me
 ```
 ```powershell
-"Authorization: Bearer $env:FLAGHAND_TOKEN" | curl --fail-with-body --silent --show-error --header '@-' https://app.flaghand.com/api/v1/me
+"Authorization: Bearer $env:FLAGHAND_TOKEN" | curl.exe --fail-with-body --silent --show-error --header '@-' https://app.flaghand.com/api/v1/me
 ```
 
 Read `getBilling` (`GET /api/v1/workspaces/{workspace}/billing`) next. A ready claim proves account creation or
@@ -248,10 +248,12 @@ tool runs each operation.
 
 ### Shells, including Windows
 
-[Codex on native Windows](https://developers.openai.com/codex/windows/) runs PowerShell;
-[Claude Code on Windows](https://code.claude.com/docs/en/setup#install-on-native-windows) uses Git Bash for its Bash
+[Codex on native Windows](https://developers.openai.com/codex/windows/) runs PowerShell 7 when it is installed and
+Windows PowerShell 5.1 otherwise; the PowerShell variants in these docs run in both and call `curl.exe`, because 5.1 aliases
+`curl` to `Invoke-WebRequest`. If 5.1 refuses `npx` because running scripts is disabled, run `npx.cmd` with the same
+arguments. [Claude Code on Windows](https://code.claude.com/docs/en/setup#install-on-native-windows) uses Git Bash for its Bash
 tool and can also use PowerShell; without Git Bash it uses PowerShell. WSL uses Linux shells. Checked October 27, 2026. Use the variant matching the **agent's tool**,
-not the terminal that launched it. Single-line commands below work in both sh and PowerShell 7; `@file` is quoted to
+not the terminal that launched it. Single-line commands below work in both sh and PowerShell; `@file` is quoted to
 avoid PowerShell splatting. Write shown JSON to UTF-8 files with your file tool, not shell-quoted JSON arguments.
 
 The CLI needs Node 20 or later, but no installed package or source checkout. It isn't on npm yet; run the hosted
@@ -261,7 +263,7 @@ sh / Bash:
 ```sh
 FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
 ```
-PowerShell 7:
+PowerShell:
 ```powershell
 $FLAGHAND_CLI = (Invoke-RestMethod https://app.flaghand.com/cli/latest.json).url
 ```
