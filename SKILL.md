@@ -8,6 +8,9 @@ description: Draft, check and request approval for X, LinkedIn and TikTok posts 
 A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
 workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
 
+- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first.** Add `https://app.flaghand.com/mcp` using [Pick your path](https://app.flaghand.com/docs/setup.md#pick-your-path). Its sign-in page shows the waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
+- **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
+
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
 outside the product's own approval request. Give the owner one plan through the returned `approval_url`, then wait.
 For suggestions, use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
@@ -33,7 +36,7 @@ installing anything else. The docs are also one page per task, each complete on 
 
 ## Start without a card
 
-If the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
+For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
 use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. Current terms are
 $19/month, or founding $149 for the first year, then $190/year while offered; read plans for current terms. The person
 adds a passkey and reaches `/welcome`: no Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
@@ -55,16 +58,20 @@ If the free start expires without a card, the workspace is `lapsed`: read, expor
 drafting stops. Explain HTTP 402 `workspace_inactive` and give the owner its `next_step` add-card/billing link. There are
 no new add-card reminder emails or extra approval permissions.
 
-## If you can't reach Flaghand
+## If you can't reach Flaghand: shell/HTTP clients only
 
-A sandbox can stop a request before Flaghand sees it. Claude Code cloud documents `403` with
+This section is only for shell/HTTP clients, not chat apps. In a chat app, a failed fetch or code-runner `CONNECT 403`
+is that app's own tool, not a Flaghand API response: use the connector. Do not ask the person to change network or
+environment settings or open claude.ai/code to use a chat connector.
+
+A shell/HTTP sandbox can stop a request before Flaghand sees it. Claude Code cloud documents `403` with
 `x-deny-reason: host_not_allowed`; Copilot's documented warning says “Firewall rules blocked me from connecting to one
 or more addresses”. The CLI's local `network` error, including `EAI_AGAIN` or `ENOTFOUND`, can also mean ordinary
 DNS/connectivity trouble. A bare `403` is not proof of a sandbox block.
 
 For a confirmed client-policy block, ask exactly: “Please allow HTTPS requests to https://app.flaghand.com in this agent's network
 settings, including POST, then let me retry Flaghand.” [Settings for your client and blocks a person cannot
-override](https://app.flaghand.com/docs/setup.md#if-you-cant-reach-flaghand). Never bypass the policy. API JSON errors such as
+override](https://app.flaghand.com/docs/setup.md#if-you-cant-reach-flaghand-shellhttp-clients-only). Never bypass the policy. API JSON errors such as
 `signup_closed`, `scope_missing` or `owner_session_required`, and `/mcp`'s `401` with `WWW-Authenticate`, are app responses,
 not sandbox blocks; follow [Errors](https://app.flaghand.com/docs/errors.md).
 

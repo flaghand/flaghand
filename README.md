@@ -20,9 +20,19 @@ approving: only the workspace owner approves, with their passkey, and Flaghand p
 approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
 outside the product's own approval request.** No token can do those things, so there is nothing to work around.
 
-## If you can't reach Flaghand
+## Pick your path
 
-A sandbox can stop a request before Flaghand sees it. First try the public, read-only
+- **Chat apps: connector first.** Claude (web/desktop): **Customize › Connectors › Add custom connector**, enter `https://app.flaghand.com/mcp`, then **Sign in now** (use **Claude's published identity** if offered). Enable Flaghand in this chat; the connector is available on mobile too. ChatGPT Business or Enterprise/Edu (eligible web workspace): **Plugins › + › Add custom MCP server**, enter `https://app.flaghand.com/mcp`, choose **OAuth**, then **Create as a plugin**, install and sign in; select it with **@**. Pro documents read/fetch only; custom-URL access on Plus is not established. [Other OAuth MCP apps and plan-specific steps](https://app.flaghand.com/docs/agents.md#mcp-from-claude-chatgpt-and-other-apps-sign-in).
+- **No account yet?** The connector's sign-in page shows the current waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
+- **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`.
+
+## If you can't reach Flaghand: shell/HTTP clients only
+
+This section is only for shell/HTTP clients, not chat apps. In a chat app, a failed fetch or code-runner `CONNECT 403`
+is that app's own tool, not a Flaghand API response: use the connector above. Do not ask the person to change
+network or environment settings or open claude.ai/code to use a chat connector.
+
+A shell/HTTP sandbox can stop a request before Flaghand sees it. First try the public, read-only
 `GET https://app.flaghand.com/api/v1/plans` without a token. Claude Code cloud documents `403` with
 `x-deny-reason: host_not_allowed`; Copilot's documented warning says “Firewall rules blocked me from connecting to one
 or more addresses”. Other clients do not document a universal blocked-host HTTP status or error string. A failed
