@@ -1,0 +1,17 @@
+{
+  "name": "flaghand",
+  "displayName": "Flaghand",
+  "version": "1.0.37",
+  "description": "Draft, check and request owner approval in Flaghand. Agents never approve, schedule or post.",
+  "author": {
+    "name": "Flaghand",
+    "email": "support@flaghand.com",
+    "url": "https://flaghand.com"
+  },
+  "homepage": "https://app.flaghand.com/docs/agents",
+  "repository": "https://github.com/flaghand/flaghand",
+  "license": "MIT-0",
+  "privacyPolicyUrl": "https://flaghand.com/privacy",
+  "icon": "./.claude-plugin/icon.png",
+  "keywords": ["social-media", "x", "twitter", "linkedin", "publishing", "approval", "passkey"]
+}

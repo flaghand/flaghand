@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "flaghand": {
+      "type": "http",
+      "url": "https://app.flaghand.com/mcp"
+    }
+  }
+}
