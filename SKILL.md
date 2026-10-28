@@ -172,10 +172,11 @@ The consent callback tells the person to go back to their agent, using the agent
 With the CLI, run `flaghand connections wait cat_… [--workspace ws_…] [--json]` once: it waits quietly, honors
 `Retry-After`, has no client-side deadline and prints the terminal result once; `failed` or `expired` exits nonzero.
 With HTTP, `getConnectionAttempt` is `GET /api/v1/workspaces/{workspace}/connection-attempts/{id}` (`read` scope),
-where `{id}` is the returned `attempt_id`. HTTP `202` with `status: "pending"` and `Retry-After: 60` means wait for
+where `{id}` is the returned `attempt_id`. HTTP `202` with `status: "pending"` and `Retry-After: 5` means wait for
 that interval before reading again. HTTP `200` is terminal with `status: "connected"`, `"failed"` or `"expired"`;
 only `connected` means success and includes the `connection` object whose active account `id` you use for drafting.
 A failure includes `error.code` and `error.message`; explain it rather than claiming success.
+The five-second hint is advice, not an enforced limit; reading an attempt never contacts a platform.
 In MCP, discover `getOperation {"operation_id":"getConnectionAttempt"}`, then after handing off `url` call
 `callReadOperation {"operation_id":"getConnectionAttempt","arguments":{"id":"cat_…"}}` (`workspace` is optional).
 Obey `Retry-After` between pending reads. Keep the same attempt; do not ask for a completion message, repeatedly call

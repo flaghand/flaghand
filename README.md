@@ -360,12 +360,13 @@ only they authorize it on the platform's own consent screen. Settings is the fal
 **After handing off the URL, wait for that attempt without asking the person to report completion.** Keep its
 `attempt_id`; a pending attempt is not a reason to create another link. The consent callback tells the person to go
 back to their agent, using the agent name saved at sign-up when available. You learn the outcome from the attempt,
-not from a message from the person or repeated `listConnections` calls.
+not from a message from the person or repeated `listConnections` calls. The five-second hint is advice, not an
+enforced limit; reading an attempt never contacts a platform.
 
 - **CLI:** run `flaghand connections wait cat_… [--workspace ws_…] [--json]` once. It waits quietly, honors
   `Retry-After`, has no client-side deadline and prints the terminal result once. `failed` or `expired` exits nonzero.
 - **HTTP:** `getConnectionAttempt` (`GET /api/v1/workspaces/{workspace}/connection-attempts/{id}`, `read` scope), with
-  the returned `cat_…` as `{id}`. Pending answers HTTP `202` with `status: "pending"` and `Retry-After: 60`; wait for
+  the returned `cat_…` as `{id}`. Pending answers HTTP `202` with `status: "pending"` and `Retry-After: 5`; wait for
   that interval before the next read. Terminal answers are HTTP `200` with `status: "connected"`, `"failed"` or
   `"expired"`. `connected` includes a `connection` object; use its active account's `id` as the draft's `connection_id`.
   A failure includes `error.code` and `error.message`; explain it instead of claiming success. Only `connected` means
