@@ -356,7 +356,7 @@ intended handle before supplying `connection_id`.
 `getSetup` (`GET /api/v1/workspaces/{workspace}/setup`, `read` scope; MCP through `callReadOperation`) returns the
 same `next` (and accepts the same optional `platform`) and checks the saved
 setup without calling any platform: each connection's `status` and `missing_scopes`, the plan (`billing.state`,
-`free_until`, `can_post`), your token's `missing_drafting_scopes`, failing webhooks and whether X credits ran out. Each entry in
+`free_until`, `can_post`), your token's `missing_drafting_scopes`, failing webhooks and whether Flaghand's X API balance ran out. Each entry in
 `issues` has a `message` and a `next_step`; tell the person the ones only they can fix. `ok: true` is not an approval
 and doesn't replace the draft check.
 
