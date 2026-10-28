@@ -22,9 +22,100 @@ outside the product's own approval request.** No token can do those things, so t
 
 ## Pick your path
 
-- **Chat apps: connector first.** Claude (web/desktop): **Customize › Connectors › Add custom connector**, enter `https://app.flaghand.com/mcp`, then **Sign in now** (use **Claude's published identity** if offered). Enable Flaghand in this chat; the connector is available on mobile too. ChatGPT Business or Enterprise/Edu (eligible web workspace): **Plugins › + › Add custom MCP server**, enter `https://app.flaghand.com/mcp`, choose **OAuth**, then **Create as a plugin**, install and sign in; select it with **@**. Pro documents read/fetch only; custom-URL access on Plus is not established. [Other OAuth MCP apps and plan-specific steps](https://app.flaghand.com/docs/agents.md#mcp-from-claude-chatgpt-and-other-apps-sign-in).
+- **Chat apps: connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`: the same sign-in page handles both. The short guide has the Claude, ChatGPT and mobile steps. Never call `startSignup`, use API sign-up or the CLI from a chat app.
 - **No account yet?** The connector's sign-in page shows the current waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`.
+
+## 1. An account and access to it
+
+**Person sign-in is not agent access.** The page offers passkeys first, then configured Google, Apple and email
+(`GET /api/v1/auth/methods`); there are no passwords. An email contains both a link and six-digit code: either works
+once, both last ten minutes and cancel after five wrong attempts. The code is bound to the requesting browser. A link
+opens a Continue page; only its POST consumes it, never GET. Repeating a request within the address's 60-second window
+sends nothing and says check your inbox, whether the account is known or unknown. Requests/checks share the signup IP
+bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
+consume their sign-in link or sign them in from the agent's browser.
+
+Ordinary first proof of a previously unproven primary email applies the recovery-style reset of old passkeys,
+identities, sessions, tokens and delegated access; the page explains it. Existing-account sign-in still needs explicit
+Allow for the agent, bound to that verified owner, not just the email the agent typed. Settings › Account can link
+alternative methods with existing-passkey step-up without that reset. Its link authorization lasts five minutes,
+separate from a ten-minute email. The immutable primary email remains a recovery path when mail is configured, even
+without an explicit identity row; a provider-only person may then remove their sole provider identity and use that
+inbox to recover. Without mail, another stored method must remain. The primary-email identity cannot be removed, and
+a linked alternative email cannot replace the primary address. Recovery ends in adding a passkey on this device. A session alone cannot add another passkey while
+one exists or delete an account: no-passkey deletion needs a fresh purpose-bound single-use method proof. Method
+management and deletion proofs are person-session operations, not new API-token or MCP powers.
+[Sign-in, methods, recovery and deletion](https://app.flaghand.com/docs/sign-in-and-tokens.md).
+
+**Returning session: check saved access first.** Read the project's credential-free access note below, then call
+`getMe` with the existing MCP connection, or `flaghand me --json` with the saved CLI login. HTTP clients use
+`GET https://app.flaghand.com/api/v1/me` with the saved token. If it confirms the intended workspace, reuse that access and read
+`getSetup` / `getBilling`; do not call `startSignup` just because this is a new conversation or MCP tools aren't loaded.
+Do not start another Checkout when the plan is already ready or the person is still finishing the existing one;
+follow [the billing wait](https://app.flaghand.com/docs/billing#waiting-for-checkout). Missing or revoked access calls for sign-in or an owner's
+replacement token, not a new account.
+
+**Chat-app connector sign-in covers new and existing accounts:** follow [Pick your path](https://app.flaghand.com/docs/setup#pick-your-path) and the
+[chat-app guide](https://app.flaghand.com/docs/chat.md), without asking which kind of account the person has. OAuth grants `read`, `drafts`,
+`media` and `request-approval`; the owner can revoke the app in Settings › Agents.
+
+**Existing owners can also provide a token.** The owner creates one in the desk, Settings › Agents › Create token
+(`https://app.flaghand.com/agents`), with those four scopes already chosen. It is shown once.
+[Save it for later sessions](https://app.flaghand.com/docs/setup#save-and-rediscover-access), never in a draft, note, chat message, command argument or
+shared log. Only the owner can add `connections` (start connecting accounts), `cancel`, `billing`, `webhooks` or
+`calendar`; a token can't create another token.
+
+### Shell/HTTP sign-up and access
+
+The person has no account yet: sign-up opens with paid early access. Until then they
+can join the waitlist with `POST https://flaghand.com/api/waitlist` and `{"email": "person@example.com"}` (no email is sent, and
+it signs them up for nothing else). `GET https://app.flaghand.com/api/v1/plans` shows the plans and the trial. Stop there: nothing
+else works without an account.
+
+
+An agent that speaks the open [auth.md](https://app.flaghand.com/auth.md) agent-registration protocol can sign its person up through it
+instead: `service_auth` at `https://app.flaghand.com/agent/identity` is this same sign-up, and the claim grant collects the same token.
+
+### Save and rediscover access
+
+An environment variable alone is not persistent storage. Choose an existing approved secret manager (for example, a
+named 1Password item), the CLI's saved login below, or the MCP client's own OAuth login. Save a claimed token directly
+from the response into that store without displaying it. Do not put tokens in a repository, `.env`, project
+instructions, shell history or chat. A skill is instructions, not credential storage.
+
+- **CLI saved login:** pipe the token from your secret store or claim handler into `flaghand login --token-stdin`.
+  Login verifies `getMe` before saving. `flaghand signup` and `flaghand signup wait` save the claimed token in the same
+  store automatically, without printing it.
+- **macOS default:** Keychain generic-password service/item `flaghand`, account `https://app.flaghand.com` (the server origin).
+  Later CLI commands and `flaghand mcp` retrieve it automatically; use `flaghand me --json` to verify, not a command that
+  prints the token. If Keychain saving fails, it errors; it does not silently switch to a file.
+- **Windows, Linux and other non-macOS systems:** the CLI uses `$XDG_CONFIG_HOME/flaghand/credentials.json`, or
+  `~/.config/flaghand/credentials.json` when `XDG_CONFIG_HOME` isn't set. It is an **unencrypted JSON file**, keyed by
+  origin, with file mode `0600` (owner read/write); newly created directories use `0700`. This is not a Linux
+  keyring integration. `FLAGHAND_TOKEN_STORE=file` selects this backend on macOS too. Keep it outside the repository;
+  On Windows these POSIX modes do not set Windows ACLs: use a private user directory or your approved secret manager.
+  If policy requires encryption, inject `FLAGHAND_TOKEN` from that manager instead (`$env:FLAGHAND_TOKEN` in PowerShell).
+- **Same origin and profile:** `FLAGHAND_TOKEN` overrides the saved CLI login. Otherwise it is found using
+  `FLAGHAND_URL` (default `https://app.flaghand.com`), the same OS user/home and, for the file backend, the same `XDG_CONFIG_HOME` and
+  store selection. An invalid environment token can therefore mask a valid saved login. A different machine or profile
+  does not inherit it. Remote MCP does not automatically read the CLI store: use OAuth or the
+  [client-specific token setup](https://app.flaghand.com/docs/agents.md#codex-cli).
+- **OAuth:** Claude Code and Codex keep their own OAuth credentials across sessions; reopen the same client profile
+  and configured server, then call `getMe`. The token is not in the skill or the CLI store. Flaghand's MCP OAuth
+  tokens do not expire and have no refresh token; access ends on revocation. Reauthenticate when needed, not on every
+  new conversation. OAuth's four drafting scopes do not replace a new-account claim's `connections` / `billing` scopes.
+
+For future agents, add **one credential-free line** to the project's existing `CLAUDE.md` (Claude Code) or `AGENTS.md`
+(Codex). Record only the origin, verified workspace and credential **locator**, never its value. For example:
+
+```text
+Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents only draft/check/request approval.
+```
+
+Replace that locator with the actual CLI file path, secret-manager item name, or OAuth MCP server name/profile you
+used. The line tells the next session where to recover access; it grants no access itself. Do not copy credential
+files or enrollment/claim secrets into the project. Verify `getMe` again before relying on the recorded workspace.
 
 ## If you can't reach Flaghand: shell/HTTP clients only
 
@@ -78,96 +169,6 @@ network blocks. `/mcp`'s `401` with `WWW-Authenticate` is its normal OAuth chall
 it; report the status and safe diagnostic, never tokens or cookies. Settings and first-party sources checked October
 26, 2026; the local check exercised the CLI in a no-network container, not these five cloud products end to end.
 
-## 1. An account and access to it
-
-**Person sign-in is not agent access.** The page offers passkeys first, then configured Google, Apple and email
-(`GET /api/v1/auth/methods`); there are no passwords. An email contains both a link and six-digit code: either works
-once, both last ten minutes and cancel after five wrong attempts. The code is bound to the requesting browser. A link
-opens a Continue page; only its POST consumes it, never GET. Repeating a request within the address's 60-second window
-sends nothing and says check your inbox, whether the account is known or unknown. Requests/checks share the signup IP
-bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
-consume their sign-in link or sign them in from the agent's browser.
-
-Ordinary first proof of a previously unproven primary email applies the recovery-style reset of old passkeys,
-identities, sessions, tokens and delegated access; the page explains it. Existing-account sign-in still needs explicit
-Allow for the agent, bound to that verified owner, not just the email the agent typed. Settings › Account can link
-alternative methods with existing-passkey step-up without that reset. Its link authorization lasts five minutes,
-separate from a ten-minute email. The immutable primary email remains a recovery path when mail is configured, even
-without an explicit identity row; a provider-only person may then remove their sole provider identity and use that
-inbox to recover. Without mail, another stored method must remain. The primary-email identity cannot be removed, and
-a linked alternative email cannot replace the primary address. Recovery ends in adding a passkey on this device. A session alone cannot add another passkey while
-one exists or delete an account: no-passkey deletion needs a fresh purpose-bound single-use method proof. Method
-management and deletion proofs are person-session operations, not new API-token or MCP powers.
-[Sign-in, methods, recovery and deletion](https://app.flaghand.com/docs/sign-in-and-tokens.md).
-
-**Returning session: check saved access first.** Read the project's credential-free access note below, then call
-`getMe` with the existing MCP connection, or `flaghand me --json` with the saved CLI login. HTTP clients use
-`GET https://app.flaghand.com/api/v1/me` with the saved token. If it confirms the intended workspace, reuse that access and read
-`getSetup` / `getBilling`; do not call `startSignup` just because this is a new conversation or MCP tools aren't loaded.
-Do not start another Checkout when the plan is already ready or the person is still finishing the existing one;
-follow [the billing wait](https://app.flaghand.com/docs/billing#waiting-for-checkout). Missing or revoked access calls for sign-in or an owner's
-replacement token, not a new account.
-
-The person already has Flaghand: they give you access in one of two ways.
-
-- **Sign in from the app.** Claude, ChatGPT and other MCP apps that do OAuth add `https://app.flaghand.com/mcp` (step 2)
-  and sign in: the owner uses any configured person sign-in method, picks the workspace and clicks Allow. Nothing to paste. The app
-  gets a workspace token with the `read`, `drafts`, `media` and `request-approval` scopes, listed in Settings › Agents,
-  where the owner can revoke it.
-- **A token.** The owner creates one in the desk, Settings › Agents › Create token (`https://app.flaghand.com/agents`), with those
-  four scopes already chosen. It is shown once. [Save it for later sessions](https://app.flaghand.com/docs/setup#save-and-rediscover-access), never in a
-  draft, note, chat message, command argument or shared log. Only the owner can add `connections` (start connecting
-  accounts), `cancel`, `billing`, `webhooks` or `calendar`; a token can't create another token.
-
-The person has no account yet: sign-up opens with paid early access. Until then they
-can join the waitlist with `POST https://flaghand.com/api/waitlist` and `{"email": "person@example.com"}` (no email is sent, and
-it signs them up for nothing else). `GET https://app.flaghand.com/api/v1/plans` shows the plans and the trial. Stop there: nothing
-else works without an account.
-
-
-An agent that speaks the open [auth.md](https://app.flaghand.com/auth.md) agent-registration protocol can sign its person up through it
-instead: `service_auth` at `https://app.flaghand.com/agent/identity` is this same sign-up, and the claim grant collects the same token.
-
-### Save and rediscover access
-
-An environment variable alone is not persistent storage. Choose an existing approved secret manager (for example, a
-named 1Password item), the CLI's saved login below, or the MCP client's own OAuth login. Save a claimed token directly
-from the response into that store without displaying it. Do not put tokens in a repository, `.env`, project
-instructions, shell history or chat. A skill is instructions, not credential storage.
-
-- **CLI saved login:** pipe the token from your secret store or claim handler into `flaghand login --token-stdin`.
-  Login verifies `getMe` before saving. `flaghand signup` and `flaghand signup wait` save the claimed token in the same
-  store automatically, without printing it.
-- **macOS default:** Keychain generic-password service/item `flaghand`, account `https://app.flaghand.com` (the server origin).
-  Later CLI commands and `flaghand mcp` retrieve it automatically; use `flaghand me --json` to verify, not a command that
-  prints the token. If Keychain saving fails, it errors; it does not silently switch to a file.
-- **Windows, Linux and other non-macOS systems:** the CLI uses `$XDG_CONFIG_HOME/flaghand/credentials.json`, or
-  `~/.config/flaghand/credentials.json` when `XDG_CONFIG_HOME` isn't set. It is an **unencrypted JSON file**, keyed by
-  origin, with file mode `0600` (owner read/write); newly created directories use `0700`. This is not a Linux
-  keyring integration. `FLAGHAND_TOKEN_STORE=file` selects this backend on macOS too. Keep it outside the repository;
-  On Windows these POSIX modes do not set Windows ACLs: use a private user directory or your approved secret manager.
-  If policy requires encryption, inject `FLAGHAND_TOKEN` from that manager instead (`$env:FLAGHAND_TOKEN` in PowerShell).
-- **Same origin and profile:** `FLAGHAND_TOKEN` overrides the saved CLI login. Otherwise it is found using
-  `FLAGHAND_URL` (default `https://app.flaghand.com`), the same OS user/home and, for the file backend, the same `XDG_CONFIG_HOME` and
-  store selection. An invalid environment token can therefore mask a valid saved login. A different machine or profile
-  does not inherit it. Remote MCP does not automatically read the CLI store: use OAuth or the
-  [client-specific token setup](https://app.flaghand.com/docs/agents.md#codex-cli).
-- **OAuth:** Claude Code and Codex keep their own OAuth credentials across sessions; reopen the same client profile
-  and configured server, then call `getMe`. The token is not in the skill or the CLI store. Flaghand's MCP OAuth
-  tokens do not expire and have no refresh token; access ends on revocation. Reauthenticate when needed, not on every
-  new conversation. OAuth's four drafting scopes do not replace a new-account claim's `connections` / `billing` scopes.
-
-For future agents, add **one credential-free line** to the project's existing `CLAUDE.md` (Claude Code) or `AGENTS.md`
-(Codex). Record only the origin, verified workspace and credential **locator**, never its value. For example:
-
-```text
-Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents only draft/check/request approval.
-```
-
-Replace that locator with the actual CLI file path, secret-manager item name, or OAuth MCP server name/profile you
-used. The line tells the next session where to recover access; it grants no access itself. Do not copy credential
-files or enrollment/claim secrets into the project. Verify `getMe` again before relying on the recorded workspace.
-
 ## 2. Connect your agent
 
 The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every request needs authentication, `initialize` included; a
@@ -194,13 +195,8 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   is saved. Start the new session with that environment and call `getMe` through MCP to verify it. Codex also supports
   OAuth and dynamic client registration; [the Codex guide](https://app.flaghand.com/docs/agents.md#codex-cli) distinguishes that sign-in from the
   token you already claimed. Neither path requires the person to copy a credential into chat.
-- **Claude apps (Free, Pro, Max):** add `https://app.flaghand.com/mcp` at Customize › Connectors › Add custom connector and sign in;
-  choose Sign in now and Use Claude's published identity if shown. Free allows one custom connector.
-  
-  Once connected, enable Flaghand in this same chat and use its tools; no new chat is needed.
-- **ChatGPT Business and Enterprise/Edu, on the web:** Plugins › + › Add custom MCP server, OAuth, then sign in;
-  use its published client identity or dynamic registration if offered. Developer Mode is not required in the current
-  Plugins flow. Pro documents read/fetch access only; arbitrary custom-MCP access on Plus is not established by the current help page.
+- **Claude and ChatGPT chat apps, new or existing accounts:** use the [chat-app connector steps](https://app.flaghand.com/docs/chat.md), not
+  HTTP sign-up, the CLI or coding-environment settings. Don't ask whether the person has an account.
 - **Gemini Apps, Perplexity and other chat apps:** check the [dated plans and click-by-click setup](https://app.flaghand.com/docs/agents.md#mcp-from-claude-chatgpt-and-other-apps-sign-in)
   first; a directory app or an MCP-capable developer product does not establish custom-URL access in a consumer app.
 - **Any other MCP client:** the same URL with `Authorization: Bearer tok_…`, or OAuth if it supports it.

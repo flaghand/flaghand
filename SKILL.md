@@ -8,7 +8,7 @@ description: Draft, check and request approval for X, LinkedIn and TikTok posts 
 A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
 workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
 
-- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first.** Add `https://app.flaghand.com/mcp` using [Pick your path](https://app.flaghand.com/docs/setup.md#pick-your-path). Its sign-in page shows the waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
+- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. Its sign-in page shows the waitlist step while sign-up is closed. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
@@ -132,7 +132,7 @@ In Claude apps, enable the connected connector in this same chat and use its too
 They get only `read`, `drafts`, `media` and `request-approval`. Every MCP request, including `initialize`, needs authentication; a `401` with
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
-While sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
+For shell/HTTP clients while sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
 owner signs in with a configured method and explicitly allows this agent, and `claimSignup` returns a token with those four scopes.
 While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
 in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. Write `claimSignup`'s
