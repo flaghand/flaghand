@@ -8,7 +8,7 @@ description: Draft, check and request approval for X, LinkedIn and TikTok posts 
 A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
 workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
 
-- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. The connector's sign-in page creates the account free with a passkey, Google or an email code, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
+- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. The connector's sign-in page creates the account free with a passkey, Google or an email link or code, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
@@ -39,7 +39,7 @@ installing anything else. The docs are also one page per task, each complete on 
 For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
 use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. Current terms are
 $19/month, or founding $149 for the first year, then $190/year while offered; read plans for current terms. The person
-completes sign-up with a configured passkey, Google, Apple or email method and reaches `/welcome`: no Checkout, card
+completes sign-up with a passkey, Google or an email link or code and reaches `/welcome`: no Checkout, card
 or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
 anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
@@ -61,7 +61,7 @@ no new add-card reminder emails or extra approval permissions.
 
 ## Person sign-in, methods and recovery
 
-The handoff page offers passkeys first, then configured Google, Apple and email (`GET /api/v1/auth/methods`). There are
+The handoff page offers a passkey, Google or an email link or code, with passkeys first and only configured methods shown (`GET /api/v1/auth/methods`). There are
 no passwords. Email sends one link plus a six-digit code: either works once and both expire in ten minutes. Five wrong
 attempts disable that request's code, not its link. Twenty consecutive wrong codes for one address disable its codes
 across requests until a valid inbox link or fresh sign-in by another method restores them. The code stays in the

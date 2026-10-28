@@ -23,14 +23,16 @@ outside the product's own approval request.** No token can do those things, so t
 ## Pick your path
 
 - **Chat apps: connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`: the same sign-in page handles both. The short guide has the Claude, ChatGPT and mobile steps. Never call `startSignup`, use API sign-up or the CLI from a chat app.
-- **No account yet? The connector's sign-in page creates the account, free, with a passkey, Google or an email code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
+- **No account yet? The connector's sign-in page creates the account, free, with a passkey, Google or an email link or code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`.
 
 ## 1. An account and access to it
 
-**Person sign-in is not agent access.** The page offers passkeys first, then configured Google, Apple and email
-(`GET /api/v1/auth/methods`); there are no passwords. An email contains both a link and six-digit code: either works
-once, both last ten minutes and cancel after five wrong attempts. The code is bound to the requesting browser. A link
+**Person sign-in is not agent access.** The page offers a passkey, Google or an email link or code, with passkeys first and only configured
+methods shown (`GET /api/v1/auth/methods`); there are no passwords. An email contains both a link and six-digit code:
+either works once and both last ten minutes. Five wrong codes disable that request's code, never its link; twenty
+consecutive wrong codes for an address disable its codes across requests until an email link or fresh sign-in another
+way restores them. The code is bound to the requesting browser. A link
 opens a Continue page; only its POST consumes it, never GET. Repeating a request within the address's 60-second window
 sends nothing and says check your inbox, whether the account is known or unknown. Requests/checks share the signup IP
 bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
@@ -83,7 +85,7 @@ link, and collect a token when they finish. The response never says whether the 
    and shared logs. Repeating this call, including while a sign-up is pending, makes a fresh link and claim code;
    it doesn't invalidate earlier links.
 3. Relay `for_person` unchanged alongside `signup_url`; do not invent prices or substitute payment instructions.
-   A new customer completes sign-up with any configured method (passkey, Google, Apple or email), then reaches
+   A new customer completes sign-up with a passkey, Google or an email link or code, then reaches
    `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. An existing
    owner signs in with a configured method, chooses a workspace they own and explicitly clicks **Allow**. The page
    shows the agent's name and the four scopes it gets: `read`, `drafts`, `media`, `request-approval`. No second account,
@@ -547,7 +549,7 @@ Next: [draft and request approval](https://app.flaghand.com/docs/drafting.md). A
 - [Flaghand](https://flaghand.com/)
 - [Site index for agents](https://flaghand.com/llms.txt)
 - [App and API index for agents](https://app.flaghand.com/llms.txt)
-- [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person confirms with a passkey.
+- [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person completes the handoff with a passkey, Google or an email link or code.
 - [Documentation](https://app.flaghand.com/docs)
 - [Agent skill](https://app.flaghand.com/skill.md) — `SKILL.md` here is byte-for-byte the hosted skill.
 - [Agents and client connection recipes](https://app.flaghand.com/docs/agents.md)
