@@ -24,7 +24,7 @@ outside the product's own approval request.** No token can do those things, so t
 
 - **Chat apps: connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`: the same sign-in page handles both. The short guide has the Claude, ChatGPT and mobile steps. Never call `startSignup`, use API sign-up or the CLI from a chat app.
 - **No account yet? The connector's sign-in page creates the account, free, with a passkey, Google or an email link or code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
-- **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`.
+- **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`. **Claude Code:** with no access, your first calls are `GET https://app.flaghand.com/api/v1/plans` and `POST https://app.flaghand.com/api/v1/signup` over HTTP, in this session; not `claude mcp add`, `/mcp` or the plugin. MCP is for later sessions ([recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session)).
 
 ## 1. An account and access to it
 
@@ -99,10 +99,13 @@ link, and collect a token when they finish. The response never says whether the 
    `status`, `workspace_id` and `scopes`, and move the token into [persistent credential storage](https://app.flaghand.com/docs/setup#save-and-rediscover-access).
    New accounts get every agent scope, `connections` and `billing` included; existing-account grants get only the four
    OAuth scopes above. Read the returned `scopes`, never assume broader access. Like every token, neither can approve,
-   schedule or post. If the token is lost anyway (never saved, a dropped reply, a crashed shell), claim again with the
-   same code within 7 days of registration or Allow: the same `token_id` comes back with a new secret and `"replaced": true`,
-   and the earlier secret stops working. No person step or new sign-up is needed. Once the owner revokes a token from
-   this sign-up, its claim code makes no more.
+   schedule or post. After that, the code alone never issues the token again. Within 7 days of registration or Allow,
+   claiming with the current token as `Authorization: Bearer` rotates it: the same `token_id` comes back with a new
+   secret and `"replaced": true`, and the earlier secret stops working. If the token is lost anyway (never saved, a
+   dropped reply, a crashed shell), claim without it: the `202` answer has `next_step: "owner_approves_reissue"`, a
+   `reissue_code` and an `approve_url`. Give the person the link (a workspace owner signs in and taps Reissue), then
+   claim with `claim_code` and `reissue_code`. The current secret works until then. Once the owner revokes a token
+   from this sign-up, its claim code makes no more.
 
 **Wait without polling into the conversation.** After relaying `for_person` with the link, ask them to tell you when
 they're back. Keep the original `signup_url` and claim code; a pending claim means registration or consent isn't
@@ -124,7 +127,8 @@ tokens and allow OAuth apps without a card; the usual scopes and platform-consen
 **Keep the original link when resuming.** An unused signup link expires after 24 hours: if registration is unfinished,
 ask for a fresh `startSignup` with the same email. After registration, resume the existing account using a configured
 sign-in method rather than creating another account. The original claim code remains collectible for seven days after
-registration or consent unless revoked. If the token is lost but its code is saved, claim again to replace the secret.
+registration or consent unless revoked. If the token is lost but its code is saved, claim again and give the person
+the returned `approve_url` to approve a new secret.
 If the code is lost or stopped working, a new link lets the existing owner sign in and explicitly Allow the agent,
 with only the four OAuth scopes. Two pending links stay independent, including in the same tab: the first creates
 the account, the second uses sign-in and Allow, and each agent claims its own code. None creates a second account,
@@ -267,12 +271,13 @@ it; report the status and safe diagnostic, never tokens or cookies. Settings and
 The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every request needs authentication, `initialize` included; a
 `401` with `WWW-Authenticate` sends an OAuth client to sign-in.
 
-- **Claude Code, in the session doing the setup:** use the HTTP API with the claimed or owner-provided token now;
-  follow [the same-session recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session) below. Do not ask the person to run `/mcp`,
-  install software, copy a token or restart the chat. Configure MCP for a later session without interrupting this one.
-- **Claude Code, optional interactive OAuth:** a person already using Claude Code can add
-  `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp` and use `/mcp` themselves to sign in with a
-  configured person method and explicitly Allow. This interactive command is not an agent-callable tool or a prerequisite for HTTP setup.
+- **Claude Code, the agent doing the setup:** work over HTTP in this session; MCP isn't needed. With no
+  account: `GET https://app.flaghand.com/api/v1/plans`, `POST https://app.flaghand.com/api/v1/signup`, give the person `signup_url`, then
+  `POST https://app.flaghand.com/api/v1/signup/claim` for the token. Then use the claimed or owner-provided token for
+  `getMe`, `getBilling`, the account links and the first draft ([same-session recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session)).
+  For later sessions, register MCP with that token:
+  `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'`.
+  Don't start with `claude mcp add`, `/mcp` or the plugin, and never ask the person to run `/mcp` or another command, copy a token or restart.
 - **Claude Code, later sessions with a saved CLI login:** after CLI login above,
   `claude mcp add --scope user flaghand -e FLAGHAND_URL=https://app.flaghand.com -- flaghand mcp` uses local stdio MCP and retrieves the CLI login automatically.
   The command after `--` must be available: install the CLI or use its hosted `npx` prefix below. Remote MCP does not
@@ -297,13 +302,23 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   `Authorization: Bearer tok_…`. Every operation named below links its own page with its fields, an example request
   and answer, its errors, and its CLI and MCP names.
 
+**Only for a person typing in Claude Code themselves**, not an agent: `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp`,
+then `/mcp` (or `claude mcp login flaghand` in a terminal) to sign in and click **Allow**. An agent reading this continues
+over HTTP above and never sends its person to `/mcp`.
+
+<!-- claude-code-plugin:start -->
+The person can instead install the plugin, which bundles the skill and the same OAuth MCP server:
+`/plugin marketplace add https://app.flaghand.com/agent-plugin/marketplace.json`, then `/plugin install flaghand@flaghand`.
+<!-- claude-code-plugin:end -->
+
 ### Claude Code: finish in this session
 
 MCP is optional, not the sign-up transport. Use HTTP for `listPlans`, `startSignup` and `claimSignup` above even
 when no MCP tools are connected. Write the ready claim's answer to a private file before printing anything, then
 move its `token` into secret storage, never into tool output; keep the `workspace_id` too. The person only opens the
 returned sign-up, payment and account-consent links. If you already saved its token, reuse it rather than claiming
-again (a repeat claim replaces it) or starting another sign-up; if you lost it, claim again with the same code.
+again or starting another sign-up; if you lost it, claim again with the same code and give the person the
+returned `approve_url`.
 Read the token from that storage inside every command; never retype it from earlier output, where some clients show
 secrets as `***` or `<redacted>`.
 
@@ -339,10 +354,7 @@ ask the person to export it or paste it. If a server with that name already exis
 it; do not blindly overwrite another connection. In a later session, call MCP `getMe` to verify the workspace and
 scopes before using it. Until then, HTTP already works. Claude Code's [MCP reference](https://code.claude.com/docs/en/mcp)
 documents HTTP headers and environment-variable expansion. Checked with Claude Code 2.1.310 (2026-10-26).
-It also supports [`claude mcp login flaghand`](https://code.claude.com/docs/en/mcp#authenticate-from-the-command-line)
-for optional interactive OAuth without `/mcp`; `--no-browser` prints an authorization link but still asks for the
-full callback URL in the terminal. That is not the link-only sign-up path above. No hot-loading of newly added MCP
-servers is assumed here.
+No hot-loading of newly added MCP servers is assumed here.
 
 The plugin also contains the same skill instructions. Its bundled MCP uses OAuth; if it isn't authenticated in this
 session, use this HTTP path rather than sending the person to `/mcp` or claiming the plugin is connected.
@@ -389,11 +401,6 @@ the hosted versioned URLs will keep working.
 
 To keep these instructions in Claude Code or Codex, install the [agent skill](https://app.flaghand.com/skill.md). Other clients'
 recipes are in the [agents guide](https://app.flaghand.com/docs/agents.md).
-
-<!-- claude-code-plugin:start -->
-In Claude Code, the plugin installs the skill and the OAuth MCP server together:
-`/plugin marketplace add https://app.flaghand.com/agent-plugin/marketplace.json`, then `/plugin install flaghand@flaghand`.
-<!-- claude-code-plugin:end -->
 
 ### Gemini CLI
 
