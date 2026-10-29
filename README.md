@@ -116,7 +116,8 @@ Where the CLI is installed, run `flaghand signup wait @/private/path/signup.json
 reply; it also accepts a plain code file, or `flaghand signup wait - < /private/path/claim-code` through stdin. These
 keep the code out of command arguments and shell history. It waits quietly, honors `Retry-After`, keeps the token in
 the CLI's secret storage, and answers once without printing either secret (`--json` returns `stored: true`).
-The combined `flaghand signup --email person@example.com --plan monthly --found-via "MCP Registry"` uses the same wait after showing the link; `--found-via` is optional.
+The combined `flaghand signup --email person@example.com --plan monthly --found-via "MCP Registry"` uses the same wait after showing the link; `--found-via` is optional and `flaghand signup --help` lists every option this server takes.
+Before it waits, it keeps the start reply in a file only you can read and prints the exact `flaghand signup wait @FILE` command that resumes it if the command is stopped; the file is deleted once the token is kept.
 With HTTP or a remote-only client, stop this turn; when the person returns, call `claimSignup` once more. If still
 pending, leave the link with them and follow `Retry-After` between turns, not repeated tool calls in this turn.
 The hint is advice, not a rate limit or a held server request. A ready claim proves account creation or explicit
@@ -150,11 +151,20 @@ Follow the billing link in `next` or a `workspace_inactive` error's `next_step`;
 `billing`, so the owner handles the card step in the product. A compatible open Checkout is reused, and a finished
 one is confirmed before another can start; don't pay again just because a return or webhook was interrupted.
 
-For a separate `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`. Pass this short
+For a separate `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`. An agent may instead finish
+Checkout with a **Link-issued recurring credential its person approved**, never a card supplied in chat; wallet approval
+does not replace the person's separate renewal consent. Read plans for `amount`, `currency` and `interval` (founding
+must cover the $190 renewal, not only the $149 first year) and ensure the card remains valid through the authorized
+period. Use `pay_with: "agent_card"` for a recurring virtual card or `"link"` to also offer Link's UI. When enabled,
+both first return HTTP 202 with `consent_url` and `for_person`: the person ticks the saved A3 terms and confirms with
+their own passkey on Flaghand, then the agent retries `startCheckout`. The agent-paid Checkout has no renewal box;
+never tick the person's ordinary Checkout box for them. [Paying as an agent](https://app.flaghand.com/docs/billing#paying-as-an-agent) has spend-request,
+CLI/MCP/WebMCP, consent, expiry and Link Pay Token test-mode instructions. Pass this short
 `https://app.flaghand.com/pay#…` Flaghand link **verbatim**, including its entire `#` fragment and in Markdown; do not follow it to copy Stripe's destination,
 shorten it or substitute a raw Stripe URL. Flaghand restores Stripe's complete URL, including the fragment card entry
-requires. An ended Checkout returns to the original approval or Billing page, where the person reviews current terms
-and starts a fresh Checkout if needed; opening the link never creates one by itself. It uses the saved
+requires. Relay `consent_url`, billing recovery links and `portal_url` unchanged too. An ended Checkout returns to the
+original approval or Billing page, where the person reviews current terms and starts a fresh Checkout if needed;
+opening the link never creates one by itself. It uses the saved
 Checkout terms and actual first-charge date, not a fresh trial or an invented quote. Keep each sentence with its
 own link; never reuse a sentence from an earlier Checkout. If `recovery` is `incomplete`, `unpaid` or `paused`,
 `checkout_url` instead continues that subscription's original card authentication or opens its Stripe invoice or billing
@@ -382,11 +392,19 @@ release with `npx`:
 
 sh / Bash:
 ```sh
-FLAGHAND_CLI="$(node --input-type=module -e 'const r=await fetch("https://app.flaghand.com/cli/latest.json"); if(!r.ok) throw Error("CLI catalog HTTP "+r.status); console.log((await r.json()).url)')"
+FLAGHAND_CLI="$(node --input-type=module -e '
+import { createHash } from "node:crypto"; import { mkdtempSync, writeFileSync } from "node:fs"; import { tmpdir } from "node:os"; import { join } from "node:path";
+const get = async (url) => { const r = await fetch(url); if (!r.ok) throw Error("HTTP " + r.status + " from " + url); return r; };
+const cli = await (await get("https://app.flaghand.com/cli/latest.json")).json(), tgz = Buffer.from(await (await get(cli.url)).arrayBuffer());
+if ("sha512-" + createHash("sha512").update(tgz).digest("base64") !== cli.integrity) throw Error("The CLI archive does not match the catalog SHA-512");
+const file = join(mkdtempSync(join(tmpdir(), "flaghand-cli-")), "flaghand.tgz"); writeFileSync(file, tgz); console.log(file)')"
 ```
 PowerShell:
 ```powershell
-$FLAGHAND_CLI = (Invoke-RestMethod https://app.flaghand.com/cli/latest.json).url
+$FLAGHAND_CATALOG = Invoke-RestMethod https://app.flaghand.com/cli/latest.json
+$FLAGHAND_CLI = Join-Path ([IO.Path]::GetTempPath()) "flaghand-$([guid]::NewGuid()).tgz"
+Invoke-WebRequest $FLAGHAND_CATALOG.url -OutFile $FLAGHAND_CLI -UseBasicParsing
+if (('sha512-' + [Convert]::ToBase64String([Security.Cryptography.SHA512]::Create().ComputeHash([IO.File]::ReadAllBytes($FLAGHAND_CLI)))) -cne $FLAGHAND_CATALOG.integrity) { Remove-Item $FLAGHAND_CLI; throw 'The CLI archive does not match the catalog SHA-512' }
 ```
 Then, in either shell:
 ```sh
@@ -394,8 +412,9 @@ npx --yes --package "$FLAGHAND_CLI" flaghand --url https://app.flaghand.com sign
 ```
 
 Use that same `npx --yes --package "$FLAGHAND_CLI" flaghand --url https://app.flaghand.com` prefix for any CLI command, including `signup` when
-sign-up is open, `connections wait` and `drafts wait`. The catalog includes the version, source commit and SHA-512
-`integrity` of its immutable tarball. Keep its URL to pin a release; fetching the catalog again picks the current one. `npx` uses its
+sign-up is open, `connections wait` and `drafts wait`. The resolver downloads the current release's immutable tarball and prints its path only
+once the bytes match the catalog's SHA-512 `integrity`, so `npx` runs exactly that file. Every build with different contents gets its own
+version and source commit in the catalog. To pin a release, keep its `url` and `integrity` and check it the same way; resolving again picks the current one. `npx` uses its
 cache, not a project install. Once the package is published, the preferred command will be `npx --yes flaghand`;
 the hosted versioned URLs will keep working.
 
@@ -437,6 +456,50 @@ expires, a `lapsed` workspace needs Billing before another draft.
 - An account is usable and the workspace is `starting`, trialing, active or comped: `createPost`. During `starting`,
   draft without a billing wait and give the owner the approval link with its card step. Read the owner's voice and
   send-back notes, then supply the whole draft plan; this advice never approves or posts anything.
+
+A single prepaid period can also use `startCheckout` with `{plan:"monthly",mode:"payment",managed_payments:true}`
+when `listPlans.managed_payments_checkout.enabled`. It never renews, so it needs no renewal-consent box or passkey
+renewal step. Relay its unchanged `checkout_url` and `for_person`, or pay only with a Link-issued credential the
+person approved: add `pay_with:"agent_card"` or `"link"` (when enabled). Never type a card from chat. Request one-time
+spend authority, not a recurring interval, and obtain approval for Stripe's actual tax-inclusive total before payment.
+Save its payment/Session IDs and recover the same purchase. Live waits for its separate rollout.
+[One-time Managed Payments](https://app.flaghand.com/docs/billing.md#one-time-managed-payments-checkout).
+
+For a delegated one-time payment instead of recurring Checkout, read `listPlans.prepaid_payments` first, with
+`billing_country` and `billing_state` when known (for example `GET /api/v1/plans?billing_country=US&billing_state=NY`).
+Discovery without location does not imply global prepaid availability. Stablecoin Checkout has its own
+`listPlans.crypto_checkout.enabled` and `country_policy`, checking both supplied location and trusted edge IP
+country; client-supplied IP headers are not evidence. Live prepaid machine payments remain off until separately released. Only when enabled, a token with `billing` scope can call `payPlan`
+(`POST /api/v1/billing/pay`, or `flaghand billing pay`) for a 402 MPP challenge. Its body accepts optional
+`billing:{country:"US",state:"NY"}`: an ISO alpha-2 country and, for the US, a two-letter postal state code.
+The location is remembered per workspace billing account and returned as `getBilling.billing_location`.
+To change it without payment, use `updateBillingLocation` through MCP's `callWriteOperation`, or
+`PATCH /api/v1/workspaces/{workspace}/billing/location` with `{"billing":{"country":"US","state":"NY"}}`;
+the generated CLI is `flaghand billing update-location -d '@/private/path/billing-location.json'` with that same body.
+Missing country or US state returns **409 `billing_location_required`**, with `missing_fields` naming
+`billing.country` or `billing.state`, and no charge; obtain the actual location instead of guessing.
+
+Every direct prepaid rail is US-only, and California (`US` / `CA`) is ineligible at or after
+`2027-01-01T08:00:00Z` (January 1, 2027 at 00:00 `America/Los_Angeles`). A known conflicting evidence country
+also requires Managed Payments Checkout. **409 `managed_payments_required`** means no direct charge: execute its
+`next_action.operation:"startCheckout"` with the returned `arguments` (`workspace`, `plan`, `mode:"payment"`,
+`managed_payments:true`), using HTTP Checkout, MCP `getOperation` then `callWriteOperation`, or generated CLI
+`flaghand billing start-checkout -d '@/private/path/managed-checkout.json'`. For that CLI file, use the returned
+`arguments`. Keep both flags so this remains one-time Managed Payments Checkout, not recurring billing; relay
+`checkout_url` and `for_person` unchanged for the person to finish. Eligibility is checked at quote time and again
+before charging or retrying. A saved-location change makes an uncharged quote stale: get a new quote, never pay the
+old challenge. [The shared policy](https://app.flaghand.com/docs/billing.md#shared-payer-country-policy) names the trusted evidence for each rail
+and the ignored `XX`, `T1` and unknown evidence values.
+
+For an eligible MPP challenge, verify the exact price and period, let Link obtain the person's approved SPT, and
+retry that same purchase with its payment credential. Never treat your workspace token as payment authority.
+A lost or pending payment result still means recover the same `payment_id`, not buy another period. Read
+[the complete payment and recovery contract](https://app.flaghand.com/docs/billing.md#prepaid-payments-for-agents). `paid_through`, `prepaid`,
+`auto_renews` and `next_payment_step` in saved billing/setup distinguish prepaid from a renewing subscription.
+If prepaid extends beyond Stripe's 730-day deferral maximum, recurring `startCheckout` returns `checkout_url:null`
+with `recurring_available_from` and a `for_person` message: no plan or charge started, and one can start on or after
+that date. Relay the message instead of opening a null URL; prepaid access is unchanged. Payment still requires a
+separate owner passkey approval before any post.
 
 Load the named operation with `getOperation` before calling it: `next.arguments` contains only what is already
 known, not a complete draft plan or a guessed platform/plan choice. Call only operations your token's returned scopes
@@ -528,14 +591,17 @@ required fresh proof in the desk; no agent token can call it.
 
 | Operation | HTTP | CLI | MCP | Scopes | Does |
 | --- | --- | --- | --- | --- | --- |
+| [`payPlan`](https://app.flaghand.com/docs/api/payPlan.md) | `POST /billing/pay` | `flaghand billing pay` | `callWriteOperation` | `billing` | Buy one prepaid month or year with a person-approved MPP payment; never renews or approves a post |
+| [`updateBillingLocation`](https://app.flaghand.com/docs/api/updateBillingLocation.md) | `PATCH /workspaces/{workspace}/billing/location` | `flaghand billing update-location` | `callWriteOperation` | `billing` | Change the remembered billing country and US state; never starts a payment |
+| [`getBilling`](https://app.flaghand.com/docs/api/getBilling.md) | `GET /workspaces/{workspace}/billing` | `flaghand billing get` | `callReadOperation` | `read` | The workspace's plan and whether it can post |
 | [`getMe`](https://app.flaghand.com/docs/api/getMe.md) | `GET /me` | `flaghand meta get-me` | listed | any token | Who is calling, and the workspaces it can use |
 | [`getSetup`](https://app.flaghand.com/docs/api/getSetup.md) | `GET /workspaces/{workspace}/setup` | `flaghand workspaces get-setup` | `callReadOperation` | `read` | Check saved posting setup, upcoming login or plan ends, agent scopes and failing webhooks |
 | [`listConnections`](https://app.flaghand.com/docs/api/listConnections.md) | `GET /workspaces/{workspace}/connections` | `flaghand connections list` | listed | `read` | The X, LinkedIn and TikTok accounts the workspace posts as |
 | [`startConnection`](https://app.flaghand.com/docs/api/startConnection.md) | `POST /workspaces/{workspace}/connections/{platform}/start` | `flaghand connections start` | `callWriteOperation` | `connections` | Start connecting an account and get the sign-in link for its owner to open (agents can) |
 | [`getConnectionAttempt`](https://app.flaghand.com/docs/api/getConnectionAttempt.md) | `GET /workspaces/{workspace}/connection-attempts/{id}` | `flaghand connections get-attempt` | `callReadOperation` | `read` | Wait for the exact connection link handed to the person |
 | [`verifyConnection`](https://app.flaghand.com/docs/api/verifyConnection.md) | `POST /workspaces/{workspace}/connections/{id}/verify` | `flaghand connections verify` | `callWriteOperation` | `read` | Check a login still works and is the pinned account |
-| [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | Add a card before the first approval, or restart a plan; Checkout never approves or posts |
-| [`openBillingPortal`](https://app.flaghand.com/docs/api/openBillingPortal.md) | `POST /workspaces/{workspace}/billing/portal` | `flaghand billing open-portal` | `callWriteOperation` | `billing` | A Stripe Customer Portal link: card, invoices, monthly or yearly, cancel |
+| [`startCheckout`](https://app.flaghand.com/docs/api/startCheckout.md) | `POST /workspaces/{workspace}/billing/checkout` | `flaghand billing start-checkout` | `callWriteOperation` | `billing` | Open recurring plan or one-time prepaid Checkout; payment never approves or posts |
+| [`openBillingPortal`](https://app.flaghand.com/docs/api/openBillingPortal.md) | `POST /workspaces/{workspace}/billing/portal` | `flaghand billing open-portal` | `callWriteOperation` | `billing` | A Stripe Customer Portal link: card, invoices, billing details and eligible plan changes |
 | [`createPost`](https://app.flaghand.com/docs/api/createPost.md) | `POST /workspaces/{workspace}/posts` | `flaghand posts create` | listed | `drafts` and `request-approval` | Draft, check and request approval in one call: the owner's approval URL, or each draft's problems and fixes |
 | [`getVoiceProfile`](https://app.flaghand.com/docs/api/getVoiceProfile.md) | `GET /workspaces/{workspace}/voice/profile` | `flaghand voice get-profile` | `callReadOperation` | `read` | Read the workspace's X voice profile before drafting |
 | [`getVoice`](https://app.flaghand.com/docs/api/getVoice.md) | `GET /workspaces/{workspace}/voice` | `flaghand voice get` | `callReadOperation` | `read` | The workspace's voice note: read it before drafting |
