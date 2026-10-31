@@ -258,6 +258,12 @@ In MCP, discover `getOperation {"operation_id":"getConnectionAttempt"}`, then af
 Obey `Retry-After` between pending reads. Keep the same attempt; do not ask for a completion message, repeatedly call
 `listConnections` to detect consent, or create another connection link while it is pending.
 
+Before drafting, use connection identity fields rather than initials or guessed handles: `profile.avatar_url` is the
+real cached picture (an authenticated workspace-relative URL), with `handle` and `display_name`. X's `subscription_type`,
+`profile.premium` and `profile.verified` follow the same platform reply. LinkedIn's `profile_url` is returned only when
+available; a null handle has `handle_unavailable_reason`, so show the name and available URL instead. Existing
+connections backfill on next token use; successful provider reads replace identity/Premium/badge preview edits.
+
 Before drafting, read the workspace's voice profile (`getVoiceProfile`: `GET /api/v1/workspaces/{workspace}/voice/profile`,
 or the MCP resource `flaghand://voice-profile`). It includes the voice note, active lessons and the lessons the owner
 removed and does not want relearned; it also labels other removals separately. A lesson marked
@@ -277,6 +283,16 @@ ethnicity, sex life, union membership or crime about anyone, including the owner
 posts and include the source post's ID; paraphrase other evidence rather than quoting it.
 
 ## Learn from recent X posts before drafting
+
+Connecting does not import earlier posts. Read `listVoiceSourcePosts` for stored originals, then `listVoiceBootstraps`
+(`GET …/voice/bootstrap`) for `enabled`, `message`, `settings.posts` and `max_credits`. **Recent-post import is currently
+off in production**, so requests return `not_supported`; use the free local `flaghand voice archive` fallback for earlier
+posts (`--submit` sends statistics only). When enabled, call `requestVoiceBootstrap` with the connected X
+`connection_id` and give the owner `confirm_url`; only they confirm in the desk. It reads recent originals, not replies
+or reposts, spending workspace credits after confirmation (default: up to 200 posts and 200 credits; an account lookup
+adds credits). Use the returned `planned.max_credits`, then read `listVoiceSourcePosts` (`origin: "x_timeline"`) and
+learn evidence-backed lessons. Never confirm for the owner or claim an unavailable read succeeded.
+[Voice bootstrap and fallback](https://app.flaghand.com/docs/setup.md#start-the-voice-from-an-existing-x-account).
 
 For each intended X account, read `listJobResults` (`GET /api/v1/workspaces/{workspace}/job-results`,
 `flaghand jobs list-results`) with its `connection_id` and `posted_after` for the relevant recent window.
@@ -397,8 +413,11 @@ time `processing`; read [TikTok's guide](https://app.flaghand.com/docs/tiktok.md
 
 - An X thread is **one** `x_thread` draft with ordered `body.posts`, not drafts replying to each other. `reply_to_url`
   refers only to an already-live post. Use `x_post` for a single post and `linkedin_post` for LinkedIn.
-- Mention, quote, media and platform rules come from the check, not assumptions. LinkedIn tags use exact page names;
-  never scrape LinkedIn pages or invent people tags. Read [drafts and media](https://app.flaghand.com/docs/drafts-and-media.md).
+- Mention, quote, media and platform rules come from the check, not assumptions. LinkedIn company URLs resolve through
+  `lookUpLinkedInOrganization` (read-only); use `linkLinkedInTag` with the exact page name and returned `urn`.
+  Numeric/saved IDs are unverified. If Community Management permission is missing, the error gives the exact
+  `urn:li:organization:<numeric-id>` to supply; never guess an ID, scrape a page or invent people tags.
+  Read [drafts and media](https://app.flaghand.com/docs/drafts-and-media.md#find-a-linkedin-companys-organization-urn).
 - Any edit to an approved snapshot voids its approval. Read its state and explain that consequence before changing it.
   `owner_session_required` or `approval_required` means the owner must act in the desk, not that you should escalate
   credentials. API tokens cannot gain approval, scheduling or posting powers.
