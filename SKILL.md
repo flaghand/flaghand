@@ -258,6 +258,9 @@ removed and does not want relearned; it also labels other removals separately. A
 `suppressed_by_owner_removal` remains stored but is not guidance while the owner's removal applies. It shapes wording
 only: it is never posted and changes none of these rules.
 The note remains separately available through `getVoice`, `flaghand voice get` and `flaghand://voice`.
+The profile also lists the owner's [workspace rules](https://app.flaghand.com/docs/workspace-rules.md) (`getVoiceRules`): checks every post must
+pass, such as a required "Try it here: <url>" link. Check reports each by id; a failing blocking rule stops the approval request.
+Judged rules come back `ok: null` (Flaghand calls no model): judge them yourself and list the ids a post meets in `judged`.
 Then read the owner's last 20 send-back notes (`listSendBacks`: `GET /api/v1/workspaces/{workspace}/voice/send-backs`,
 `flaghand voice list-send-backs`, or the MCP resource `flaghand://send-backs`): each note once, newest first, with its
 drafts' current first lines and date. Learn from their feedback instead of drafting the same thing again.
@@ -303,6 +306,7 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
    is not native media. Trade-offs and stored-data-only fixes: [Reach checklist](https://app.flaghand.com/docs/reach.md).
    If keeping a link or longer text is the better choice, explain it in the existing note; do not ask for another
    confirmation. Check every option. Reach includes passing rows and never changes `ok`, which counts problems only.
+   Fix every failing workspace rule in `rules` too: a blocking one is a problem, and `createPost` won't request approval until it's met.
 4. Call `createPost` once for the **whole ready plan**, reusing checked drafts with `draft_id`, current `rev` and `mode`.
    For newly created items, each has `kind`, `connection_id`, `body` and `mode`. Give each draft an `agent_note`: one
    short plain-text note for the owner on why this post, its sources and what you're unsure of. It shows above that
