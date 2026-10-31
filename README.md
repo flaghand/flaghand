@@ -470,7 +470,7 @@ For a delegated one-time payment instead of recurring Checkout, read `listPlans.
 Discovery without location does not imply global prepaid availability. Stablecoin Checkout has its own
 `listPlans.crypto_checkout.enabled` and `country_policy`, checking both supplied location and trusted edge IP
 country; client-supplied IP headers are not evidence. Live prepaid machine payments remain off until separately released. Only when enabled, a token with `billing` scope can call `payPlan`
-(`POST /api/v1/billing/pay`, or `flaghand billing pay`) for a 402 MPP challenge. Its body accepts optional
+(`POST /api/v1/billing/pay`, or `flaghand billing pay`) for a 402 MPP and/or x402 challenge. Its body accepts optional
 `billing:{country:"US",state:"NY"}`: an ISO alpha-2 country and, for the US, a two-letter postal state code.
 The location is remembered per workspace billing account and returned as `getBilling.billing_location`.
 To change it without payment, use `updateBillingLocation` through MCP's `callWriteOperation`, or
@@ -489,11 +489,36 @@ also requires Managed Payments Checkout. **409 `managed_payments_required`** mea
 `checkout_url` and `for_person` unchanged for the person to finish. Eligibility is checked at quote time and again
 before charging or retrying. A saved-location change makes an uncharged quote stale: get a new quote, never pay the
 old challenge. [The shared policy](https://app.flaghand.com/docs/billing.md#shared-payer-country-policy) names the trusted evidence for each rail
-and the ignored `XX`, `T1` and unknown evidence values.
+and the `XX`, `T1` and unknown values ignored only for MPP card/Stripe sender evidence, never x402 admission.
 
 For an eligible MPP challenge, verify the exact price and period, let Link obtain the person's approved SPT, and
 retry that same purchase with its payment credential. Never treat your workspace token as payment authority.
-A lost or pending payment result still means recover the same `payment_id`, not buy another period. Read
+
+For an advertised `x402` / `exact` challenge, decode the base64 v2 `PAYMENT-REQUIRED` value (also preserved in JSON),
+verify its purchase resource, exact price/period and Terms, and pay USDC only to its quoted Stripe deposit `payTo`.
+The network is Base `eip155:8453` live or Base Sepolia `eip155:84532` test; verify the exact atomic amount and USDC
+asset on that network. Only a wallet the person explicitly delegated and funded or capped for this spend may sign;
+workspace API Bearer access is not spend authority. Standard `@x402/fetch` + `@x402/evm` 2.29.0 exact clients are
+supported, with a client-generated nonce and no custom signer or server-selected `authorizationNonce`
+([standard client wiring](https://app.flaghand.com/docs/billing.md#x402-usdc-on-base)). The EIP-3009 signature covers payer/payee, amount,
+network/asset domain, nonce and validity, **not** the HTTP workspace, `payment_id` or resource.
+Before facilitator dispatch, the server binds the immutable quote to the authenticated workspace and durably,
+atomically claims `(mode, network, asset, payer, nonce)` on first use. After that claim only the original purchase
+can recover or replay it. A stolen preclaim signature is transferable to a same-price eligible purchase in another
+eligible workspace the holder can access; confidential delegation is an explicit assumption. Disclosure compromises
+the bearer credential, and TLS does not protect it after disclosure. Use authenticated TLS only and keep raw
+signatures/credentials out of URLs, logs, errors and retained evidence (also command arguments and screenshots).
+Keep workspace `Authorization: Bearer` separate and answer with HTTP `PAYMENT-SIGNATURE` or JSON `payment_signature`
+(the same base64 x402 v2 header value), including the original `payment_id` and plan through HTTP, MCP or CLI.
+US billing country/state AND known US trusted edge-IP country are required at quote and before submission.
+`DE`, missing or unknown edge evidence routes to `startCheckout` with `mode:"payment",managed_payments:true`, in
+`x402_unavailable.next_action` if MPP is still offered; never use client-supplied country headers as evidence. A facilitator's settlement is not payment
+truth: paid time requires Stripe-verified USD settlement, a matching succeeded Stripe PaymentIntent and verified
+paid Charge for the exact mode, customer, quoted USD amount/currency and Base transaction/network/asset. The paid
+result includes `x402:{transaction,network,payer}` and HTTP `PAYMENT-RESPONSE`; no auto renewal or post approval is granted.
+Live x402 remains off until separate legal, security and tax approval.
+
+A lost or pending payment result still means recover the same `payment_id` and plan, never double buy. Read
 [the complete payment and recovery contract](https://app.flaghand.com/docs/billing.md#prepaid-payments-for-agents). `paid_through`, `prepaid`,
 `auto_renews` and `next_payment_step` in saved billing/setup distinguish prepaid from a renewing subscription.
 If prepaid extends beyond Stripe's 730-day deferral maximum, recurring `startCheckout` returns `checkout_url:null`
@@ -592,7 +617,7 @@ required fresh proof in the desk; no agent token can call it.
 
 | Operation | HTTP | CLI | MCP | Scopes | Does |
 | --- | --- | --- | --- | --- | --- |
-| [`payPlan`](https://app.flaghand.com/docs/api/payPlan.md) | `POST /billing/pay` | `flaghand billing pay` | `callWriteOperation` | `billing` | Buy one prepaid month or year with a person-approved MPP payment; never renews or approves a post |
+| [`payPlan`](https://app.flaghand.com/docs/api/payPlan.md) | `POST /billing/pay` | `flaghand billing pay` | `callWriteOperation` | `billing` | Buy one prepaid month or year with delegated MPP or x402; never renews or approves a post |
 | [`updateBillingLocation`](https://app.flaghand.com/docs/api/updateBillingLocation.md) | `PATCH /workspaces/{workspace}/billing/location` | `flaghand billing update-location` | `callWriteOperation` | `billing` | Change the remembered billing country and US state; never starts a payment |
 | [`getBilling`](https://app.flaghand.com/docs/api/getBilling.md) | `GET /workspaces/{workspace}/billing` | `flaghand billing get` | `callReadOperation` | `read` | The workspace's plan and whether it can post |
 | [`getMe`](https://app.flaghand.com/docs/api/getMe.md) | `GET /me` | `flaghand meta get-me` | listed | any token | Who is calling, and the workspaces it can use |
