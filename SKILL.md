@@ -294,10 +294,11 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
 ## Draft, fix reach, then request approval
 
 1. Use only facts the person gave or you can verify; ask rather than invent claims, including what other people asked for. Flagging a made-up claim in `agent_note` does not make it a fact.
-2. Upload any media first with `uploadMedia`, or, for a photo on a web page or a file already online, put
-   `media_from` (the URL, or `{url, pick}`) on the body and it's imported in the same call; `importMedia` lists a
-   page's photos to pick from. Use only images the owner has the rights to post; for a page, a link card links back
-   to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`;
+2. Upload any media first with `uploadMedia`, or, for a photo on a web page, a file already online or the media of a
+   post by one of the workspace's connected X accounts, put `media_from` (the URL, or `{url, pick}`) on the body and
+   it's imported in the same call; `importMedia` lists a page's photos or the post's media to pick from. Another
+   account's X post is refused: link or quote it instead. Use only images the owner has the rights to post (media
+   their post reused from someone else's post is still theirs); for a page, a link card links back to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`;
    the local CLI/stdio MCP can take a readable `file` instead. Upload reads width, height and duration from the file.
    For animated WebP or an unusual video it cannot read, supply real `width` and `height` as digit strings (for example
    `"800"`, `"600"`) and video `duration` as a seconds string such as `"12.5"`.
