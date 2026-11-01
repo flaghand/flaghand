@@ -553,6 +553,14 @@ and doesn't replace the draft check.
 `platform` (`x`, `linkedin` or `tiktok`), `handle`, `display_name` and `status`. Use the `id` of the **active**
 connection as each draft's `connection_id`. If a platform has several, match the handle the person named, or ask.
 
+**LinkedIn Pages (separate Community Development app):** only where that app is configured, send
+`{"linkedin_organization":"urn:li:organization:12345"}` to the LinkedIn `startConnection` body (the actual Page URN,
+not a member ID). The Page administrator grants access; it creates a separate Page connection and never replaces a
+personal-profile login. Use its returned `connection_id` explicitly on every Page draft. Reconnect preserves its
+issuing app, granting member and Page; omit the Page field for the unchanged personal-profile path. This is a
+Development integration, not a claim of Standard access, follower discovery, comments or analytics. All real posts
+still require the owner's exact passkey approval.
+
 No active account for a platform: call `startConnection` for that platform and give the person the returned link;
 only they authorize it on the platform's own consent screen. Settings is the fallback when the token lacks `connections` scope.
 
