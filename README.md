@@ -229,8 +229,8 @@ instructions, shell history or chat. A skill is instructions, not credential sto
   tokens do not expire and have no refresh token; access ends on revocation. Reauthenticate when needed, not on every
   new conversation. OAuth's four drafting scopes do not replace a new-account claim's `connections` / `billing` scopes.
 
-For future agents, add **one credential-free line** to the project's existing `CLAUDE.md` (Claude Code) or `AGENTS.md`
-(Codex). Record only the origin, verified workspace and credential **locator**, never its value. For example:
+For future agents, add **one credential-free line** to the project's `CLAUDE.md` (Claude Code) or `AGENTS.md`
+(Codex), creating the file if absent. Record only the origin, verified workspace and credential **locator**, never its value. For example:
 
 ```text
 Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents only draft/check/request approval.
@@ -385,11 +385,12 @@ No hot-loading of newly added MCP servers is assumed here.
 The plugin also contains the same skill instructions. Its bundled MCP uses OAuth; if it isn't authenticated in this
 session, use this HTTP path rather than sending the person to `/mcp` or claiming the plugin is connected.
 
-The MCP server lists thirteen tools for the drafting loop: `getMe`, `listConnections`, `uploadMedia`, `createPost`,
-`createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `getOperation`,
+The MCP server lists fourteen tools for the drafting loop: `getMe`, `getSetup`, `listConnections`, `uploadMedia`,
+`createPost`, `createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `getOperation`,
 `callReadOperation` and `callWriteOperation`. Everything else is one step away: `getOperation` with
-`{"operation_id": "getSetup"}` returns its schema, then `callReadOperation` (reads) or `callWriteOperation` (writes)
-runs it with `{"operation_id": "getSetup", "arguments": {}}`; each refuses the other kind and names the right one.
+`{"operation_id": "getConnectionAttempt"}` returns its schema, then `callReadOperation` (reads) or `callWriteOperation`
+(writes) runs it with `{"operation_id": "getConnectionAttempt", "arguments": {"id": "cat_…"}}`; each refuses the other
+kind and names the right one.
 In MCP, `workspace` is optional and defaults to your token's workspace. The operation tables on these pages say which
 tool runs each operation.
 
