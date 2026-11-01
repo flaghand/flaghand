@@ -89,7 +89,8 @@ link, and collect a token when they finish. The response never says whether the 
    it doesn't invalidate earlier links.
 3. Relay `for_person` unchanged alongside `signup_url`; do not invent prices or substitute payment instructions.
    A new customer completes sign-up with a passkey, Google or an email link or code, then reaches
-   `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. An existing
+   `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. Google/email
+   sign-up, when configured, needs no passkey; the first approval creates one if needed. An existing
    owner signs in with a configured method, chooses a workspace they own and explicitly clicks **Allow**. The page
    shows the agent's name and the four scopes it gets: `read`, `drafts`, `media`, `request-approval`. No second account,
    subscription or new passkey is needed, and the workspace's original free-start/trial dates stay unchanged. Provider
@@ -106,7 +107,8 @@ link, and collect a token when they finish. The response never says whether the 
    claiming with the current token as `Authorization: Bearer` rotates it: the same `token_id` comes back with a new
    secret and `"replaced": true`, and the earlier secret stops working. If the token is lost anyway (never saved, a
    dropped reply, a crashed shell), claim without it: the `202` answer has `next_step: "owner_approves_reissue"`, a
-   `reissue_code` and an `approve_url`. Give the person the link (a workspace owner signs in and taps Reissue), then
+   `reissue_code` and an `approve_url`. Keep `reissue_code` private like `claim_code` and the token, never in chat,
+   argv or logs. Give the person the link (a workspace owner signs in and taps Reissue), then
    claim with `claim_code` and `reissue_code`. The current secret works until then. Once the owner revokes a token
    from this sign-up, its claim code makes no more.
 
@@ -301,13 +303,13 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
   account: `GET https://app.flaghand.com/api/v1/plans`, `POST https://app.flaghand.com/api/v1/signup`, give the person `signup_url`, then
   `POST https://app.flaghand.com/api/v1/signup/claim` for the token. Then use the claimed or owner-provided token for
   `getMe`, `getBilling`, the account links and the first draft ([same-session recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session)).
-  For later sessions, register MCP with that token:
-  `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'`.
-  Don't start with `claude mcp add`, `/mcp` or the plugin, and never ask the person to run `/mcp` or another command, copy a token or restart.
-- **Claude Code, later sessions with a saved CLI login:** after CLI login above,
-  `claude mcp add --scope user flaghand -e FLAGHAND_URL=https://app.flaghand.com -- flaghand mcp` uses local stdio MCP and retrieves the CLI login automatically.
-  The command after `--` must be available: install the CLI or use its hosted `npx` prefix below. Remote MCP does not
-  import the CLI login; use the environment-header recipe below or the client's own OAuth login instead.
+  For later sessions, use the [saved-token MCP setup](https://app.flaghand.com/docs/setup#claude-code-saved-token-mcp) below; on macOS its `headersHelper`
+  reads the token from Keychain without a per-shell export. Don't start with MCP or the plugin, and never ask the person
+  to run `/mcp` or another command, copy a token or restart.
+- **Claude Code, later sessions with a saved CLI login:** prefer [remote MCP with a Keychain helper](https://app.flaghand.com/docs/setup#claude-code-saved-token-mcp)
+  on macOS. Alternatively, `claude mcp add --scope user flaghand -e FLAGHAND_URL=https://app.flaghand.com -- flaghand mcp` uses local stdio
+  MCP and retrieves the CLI login automatically, including the file backend on other systems. The command after `--`
+  must be available: install the CLI or use its hosted `npx` prefix below. Choose one MCP connection, not both.
 - **Codex CLI, already in this session:** if you just collected the sign-up token, use the HTTP API below **in this
   session**. Keep the claimed token in your private credential store and pass it directly to the HTTP client; call
   `GET https://app.flaghand.com/api/v1/me`, then `getBilling` and continue setup. Do not ask the person to export a token, restart
@@ -368,19 +370,9 @@ Then use HTTP for `getSetup`, `startConnection` (hand its `url` to the person), 
 Keep using HTTP in this conversation if newly configured MCP tools are not available; a saved config is not a
 successful connection, and installing a server does not finish the user's task.
 
-For **later Claude Code sessions**, the agent can register the server itself:
-
-```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
-```
-
-The single quotes are intentional: Claude Code stores the literal environment-variable reference, not the token.
-Provide `FLAGHAND_TOKEN` from secret storage in the environment of the shell that starts that later session. Do not
-ask the person to export it or paste it. If a server with that name already exists, inspect its config before changing
-it; do not blindly overwrite another connection. In a later session, call MCP `getMe` to verify the workspace and
-scopes before using it. Until then, HTTP already works. Claude Code's [MCP reference](https://code.claude.com/docs/en/mcp)
-documents HTTP headers and environment-variable expansion. Checked with Claude Code 2.1.310 (2026-10-26).
-No hot-loading of newly added MCP servers is assumed here.
+For **later Claude Code sessions**, prepare [saved-token MCP](https://app.flaghand.com/docs/setup#claude-code-saved-token-mcp) below. A saved config is
+not a successful connection: call MCP `getMe` in that later session to verify the workspace and scopes. Until then,
+HTTP already works; no hot-loading of newly added servers is assumed.
 
 The plugin also contains the same skill instructions. Its bundled MCP uses OAuth; if it isn't authenticated in this
 session, use this HTTP path rather than sending the person to `/mcp` or claiming the plugin is connected.
@@ -393,6 +385,87 @@ The MCP server lists fourteen tools for the drafting loop: `getMe`, `getSetup`, 
 kind and names the right one.
 In MCP, `workspace` is optional and defaults to your token's workspace. The operation tables on these pages say which
 tool runs each operation.
+
+### Claude Code: saved-token MCP
+
+**Choose ONE connection: the plugin's OAuth MCP OR a standalone token MCP.** The plugin server is
+`plugin:flaghand:flaghand`; a standalone entry is `flaghand`. Different names can leave two connections to the same
+workspace, with different credentials. Installing the skill alone does not add an MCP server.
+
+- **Keep plugin OAuth:** remove only your old standalone entry with `claude mcp remove flaghand --scope user`.
+  If it was added at `local` or `project` scope, use that scope instead; check for an older entry in those scopes too.
+  Do not remove an unrelated connection just because it has the same name.
+- **Keep token MCP:** disable the plugin with `claude plugin disable flaghand@flaghand` in the relevant project, or
+  uninstall it with `claude plugin uninstall flaghand@flaghand --scope user` (use its actual installation scope).
+  This also disables/removes its skill and commands; keep the [standalone skill](https://app.flaghand.com/docs/agents.md#install-the-agent-skill)
+  if needed. Do not try `claude mcp remove plugin:flaghand:flaghand`: plugin servers are managed through the plugin.
+  A person who wants to retain the plugin's skill can instead disable only its MCP server in `/mcp`.
+
+On **macOS**, prefer `headersHelper` over a static environment-variable header: it reads the saved token at connection
+time, so later shells do not need to export `FLAGHAND_TOKEN`. First save the token with the CLI's
+[Keychain login](https://app.flaghand.com/docs/setup#save-and-rediscover-access), then verify `flaghand me --json` with no overriding `FLAGHAND_TOKEN`.
+The helper below uses the same Keychain service `flaghand` and account `https://app.flaghand.com`; it does not read the CLI file backend.
+
+Create the directory with `mkdir -p "$HOME/.local/lib/flaghand"`, then use your file editor to save
+`~/.local/lib/flaghand/mcp-headers.cjs` outside the repository. This file contains **code, not a token**; Node must be
+on Claude Code's `PATH` (or use its absolute path in `headersHelper`).
+
+```js
+const { execFileSync } = require("node:child_process");
+try {
+  const token = execFileSync("/usr/bin/security", [
+    "find-generic-password", "-s", "flaghand", "-a", "https://app.flaghand.com", "-w"
+  ], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  if (!/^tok_[A-Za-z0-9_-]+$/.test(token)) throw new Error();
+  process.stdout.write(JSON.stringify({ Authorization: `Bearer ${token}` }));
+} catch {
+  process.stderr.write("Flaghand Keychain token unavailable; check the saved CLI login.\n");
+  process.exit(1);
+}
+```
+
+Make the helper directory and file private, then register it (the single quotes preserve the command, not a secret):
+
+```sh
+chmod 700 "$HOME/.local/lib/flaghand" "$HOME/.local/lib/flaghand/mcp-headers.cjs"
+claude mcp add-json --scope user flaghand '{"type":"http","url":"https://app.flaghand.com/mcp","headersHelper":"node \"$HOME/.local/lib/flaghand/mcp-headers.cjs\""}'
+```
+
+If `flaghand` already exists, check its origin and scope without displaying any saved headers; remove only the entry
+you are replacing before adding this one. Never run the helper by itself in a terminal or capture its stdout in a
+transcript/file: stdout contains the credential and is only for Claude Code. Do not enable shell tracing or add
+logging. Neither the helper file, MCP configuration nor process arguments contain the token.
+
+Claude Code expects a JSON object of string-valued headers, runs the command in a shell with a 10-second timeout,
+and reruns it on connection/reconnect. An `Authorization` header from the helper selects token authentication, not
+OAuth fallback. On Linux/Windows, use [local stdio MCP](https://app.flaghand.com/docs/agents.md#mcp-local) with the saved login, or an approved
+secret-manager helper returning the same JSON shape. Environment injection is an alternative only when your launcher
+already supplies it securely; an export in an agent's child shell does not persist into later Claude Code sessions.
+
+[Dynamic-header and folder-trust reference](https://code.claude.com/docs/en/mcp#use-dynamic-headers-for-custom-authentication)
+· [Plugin management](https://code.claude.com/docs/en/plugins/cli-reference). Configuration checked against these
+Claude Code docs on October 31, 2026; no live Keychain or workspace connection is implied by saving it.
+
+### Claude Code: stale authentication status
+
+For a **local/project-scope** `headersHelper`, Claude Code must trust the exact folder declaring the server before
+running it. A trusted parent folder is not enough; the person accepts the normal trust dialog for a folder they
+actually trust. Do not edit trust flags or bypass a managed policy. The user-scope helper above is not subject to
+that project/local helper trust gate.
+
+If the folder is already trusted and the saved token works, but this server still shows **needs authentication**
+after its configuration is corrected, a stale client cache may be responsible. For a file-backed Claude Code profile:
+
+1. Close the Claude Code sessions using that profile before editing, so they cannot rewrite the old cache.
+2. In `~/.claude/mcp-needs-auth-cache.json` (under `CLAUDE_CONFIG_DIR` if set), remove **only the top-level entry for
+   this server**: `flaghand` for the standalone connection, or `plugin:flaghand:flaghand` for the plugin. Preserve every
+   other entry and valid JSON. If the file or matching key is absent, stop; do not create a file or reset other stores.
+3. Restart Claude Code in the trusted folder, then call `getMe` through the chosen MCP connection to verify it.
+
+This is a targeted, version-specific repair, not token rotation or a substitute for a valid login. The file-backed
+cache and per-server keys were checked in Claude Code 2.1.316's shipped implementation; they are not a documented
+stable configuration API. Do not delete the whole cache, `~/.claude.json`, OAuth credentials or Keychain items. An
+agent still completing setup should continue over HTTP now, not send the person away to restart or authenticate.
 
 ### Shells, including Windows
 

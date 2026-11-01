@@ -12,8 +12,9 @@ workspace owner approves the exact snapshot with a passkey; Flaghand posts only 
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
-outside the product's own approval request. Give the owner one plan through the returned `approval_url`, then wait.
-For suggestions, use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
+outside the product's own approval request. For a requested publishing plan (including `/shipped`), use one `createPost`
+for the whole ready plan, give the owner its `approval_url`, then wait. A suggestion batch is different:
+use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
 `import_key`, best first within a shared `suggestion.run_id`, and leave it in [Suggested](https://app.flaghand.com/suggested) for
 them to pick. Write them from the owner's own posts, never brand notes or a style guide, and blind-check them against the owner's real posts before creating any (details: [Voice rules](https://app.flaghand.com/docs/voice-rules.md)).
 Do not send a batch approval request. Replies use `x_post`, `body.reply_to_url` and
@@ -36,13 +37,13 @@ installing anything else. The docs are also one page per task, each complete on 
 ## Start without a card
 
 For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
-use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. With staged Managed
+use `startSignup` (`POST /api/v1/signup` with email; optional `plan`, `workspace_name`, `found_via`) and give them its `signup_url`. With staged Managed
 Payments enabled, worldwide base prices are USD $19/month or $190/year, or founding USD $149 for the first year,
 then $190/year while offered.
 Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
 Managed Payments Checkout may show local currency through Adaptive Pricing; read plans for current terms. The person
-completes sign-up with a passkey or another sign-in method shown on the page and reaches `/welcome`: no Checkout, card
-or Stripe customer at sign-up. Treat `claim_code` as a secret
+completes sign-up with a passkey or another sign-in method shown on the page. Google/email create an account without a passkey; first approval
+adds one. No Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
 anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
 history or shared logs. Use `claimSignup` after they return; pending means registration or explicit Allow is unfinished,

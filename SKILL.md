@@ -12,8 +12,9 @@ workspace owner approves the exact snapshot with a passkey; Flaghand posts only 
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
-outside the product's own approval request. Give the owner one plan through the returned `approval_url`, then wait.
-For suggestions, use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
+outside the product's own approval request. For a requested publishing plan (including `/shipped`), use one `createPost`
+for the whole ready plan, give the owner its `approval_url`, then wait. A suggestion batch is different:
+use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
 `import_key`, best first within a shared `suggestion.run_id`, and leave it in [Suggested](https://app.flaghand.com/suggested) for
 them to pick. Write them from the owner's own posts, never brand notes or a style guide, follow
 [Voice rules](https://app.flaghand.com/docs/voice-rules.md), and blind-check them against the owner's real posts before creating any.
@@ -37,13 +38,13 @@ installing anything else. The docs are also one page per task, each complete on 
 ## Start without a card
 
 For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
-use `startSignup` (`POST /api/v1/signup` with email and plan) and give them its `signup_url`. With staged Managed
+use `startSignup` (`POST /api/v1/signup` with email; optional `plan`, `workspace_name`, `found_via`) and give them its `signup_url`. With staged Managed
 Payments enabled, worldwide base prices are USD $19/month or $190/year, or founding USD $149 for the first year,
 then $190/year while offered.
 Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
 Managed Payments Checkout may show local currency through Adaptive Pricing; read plans for current terms. The person
-completes sign-up with a passkey, Google or an email link or code and reaches `/welcome`: no Checkout, card
-or Stripe customer at sign-up. Treat `claim_code` as a secret
+completes sign-up with a passkey, Google or an email link or code. Google/email create an account without a passkey; first approval
+adds one. No Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
 anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
 history or shared logs. Use `claimSignup` after they return; pending means registration or explicit Allow is unfinished,
@@ -149,12 +150,7 @@ pending; reuse any compatible add-card Checkout rather than creating another pay
 to open links; never ask them to run `/mcp`, copy a token, install software, export a variable or restart the chat.
 Do not stop at installing an MCP server.
 
-The agent can prepare MCP for **later sessions**, with `FLAGHAND_TOKEN` supplied from secret storage to the shell
-that launches Claude Code. Single quotes save a literal environment reference, never the token itself:
-
-```sh
-claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp --header 'Authorization: Bearer ${FLAGHAND_TOKEN}'
-```
+The agent can prepare MCP for **later sessions** with the [Keychain-backed headersHelper recipe](https://app.flaghand.com/docs/setup.md#claude-code-saved-token-mcp), so each new shell need not export a token. Choose one server: the plugin's OAuth MCP or a token MCP, not both; that recipe covers removal and stale authentication-cache recovery.
 
 Keep using HTTP now if those tools are not available; call MCP `getMe` in the later session before claiming it works.
 The plugin's bundled server uses OAuth, not this header: if unauthenticated, use HTTP rather than asking the person
