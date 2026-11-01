@@ -561,7 +561,7 @@ For a delegated one-time payment instead of recurring Checkout, read `listPlans.
 `billing_country` and `billing_state` when known (for example `GET /api/v1/plans?billing_country=US&billing_state=NY`).
 Discovery without location does not imply global prepaid availability. Stablecoin Checkout has its own
 `listPlans.crypto_checkout.enabled` and `country_policy`, checking both supplied location and trusted edge IP
-country; client-supplied IP headers are not evidence. Live prepaid machine payments remain off until separately released. Only when enabled, a token with `billing` scope can call `payPlan`
+country; client-supplied IP headers are not evidence. In live mode only MPP is on; x402 stays off until a later Terms revision. Only when enabled, a token with `billing` scope can call `payPlan`
 (`POST /api/v1/billing/pay`, or `flaghand billing pay`) for a 402 MPP and/or x402 challenge. Its body accepts optional
 `billing:{country:"US",state:"NY"}`: an ISO alpha-2 country and, for the US, a two-letter postal state code.
 The location is remembered per workspace billing account and returned as `getBilling.billing_location`.
