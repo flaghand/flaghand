@@ -8,7 +8,7 @@ description: Draft, check and request approval for X, LinkedIn and TikTok posts 
 A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
 workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
 
-- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Add `https://app.flaghand.com/mcp` as a connector (details: [Set up in a chat app](https://app.flaghand.com/docs/chat.md)); never use `startSignup` or API sign-up from a chat app. The connector's sign-in page creates the account free with a passkey or another sign-in method shown on the page, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
+- **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Add `https://app.flaghand.com/mcp` as a connector (details: [Set up in a chat app](https://app.flaghand.com/docs/chat.md)); never use `startSignup` or API sign-up from a chat app. The connector's sign-in page creates the account free with Google or an email code shown on the page, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
 **Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
@@ -42,7 +42,7 @@ Payments enabled, worldwide base prices are USD $19/month or $190/year, or found
 then $190/year while offered.
 Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
 Managed Payments Checkout may show local currency through Adaptive Pricing; read plans for current terms. The person
-completes sign-up with a passkey or another sign-in method shown on the page. Google/email create an account without a passkey; first approval
+completes sign-up with Google or an email code shown on the page. Google/email create an account without a passkey; first approval
 adds one. No Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
 anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
@@ -299,7 +299,12 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
    post by one of the workspace's connected X accounts, put `media_from` (the URL, or `{url, pick}`) on the body and
    it's imported in the same call; `importMedia` lists a page's photos or the post's media to pick from. Another
    account's X post is refused: link or quote it instead. Use only images the owner has the rights to post (media
-   their post reused from someone else's post is still theirs); for a page, a link card links back to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`. Upload reads width, height and duration from the file.
+   their post reused from someone else's post is still theirs); for a page, a link card links back to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`,
+   only for small files you write yourself, never a video.
+   A file the person has, attached in a chat or on their phone, goes through Files: give them
+   `https://app.flaghand.com/?workspace=ws_…#files` with their workspace id, ask them to add it there and paste what **Copy for your
+   agent** gives them (one `med_` id, name and length per line), or read `listMedia`. Nothing posts from Files. Check a
+   video with `getMedia`, never `getMediaContent`. [Where a file can come from](https://app.flaghand.com/docs/media-and-threads.md#where-a-file-can-come-from). Upload reads width, height and duration from the file.
    For animated WebP or an unusual video it cannot read, supply real `width` and `height` as digit strings (for example
    `"800"`, `"600"`) and video `duration` as a seconds string such as `"12.5"`.
 3. For X and LinkedIn, use `createDraft` and `checkDraft` in the intended mode before requesting approval. Fix
@@ -336,6 +341,11 @@ After approval, an X quote draft or waiting hand-first job has `handoff_url` (X'
 `attachment_url`). Give it to the person as “Quote on X”, in a separate tab. The person adds any approved media/poll
 and posts there; agents never open or submit the composer. Record the live link separately afterwards. Before approval,
 after invalidation or after the hand step is complete the URL is absent. Opening it is not a posted result.
+
+Several files across several accounts: one `createDraft` per file and account with `import_key`
+`bulk:<plan label>:<med_id>:<connection_id>` and an exact `post_at` (or `next_slot`), then one `createPost` with each
+`draft_id`, `rev` and explicit `mode: "schedule"`. After an interruption, send the whole list again with the same keys.
+At most 50 drafts per plan; send the rest as a next plan and say so. [Many files to many accounts](https://app.flaghand.com/docs/drafting.md#many-files-to-many-accounts).
 
 `createPost` creates or reuses the drafts, checks each, and requests approval only when every check has no problems.
 Reach warnings do not stop that request: address them in the preparation step above. It never approves or creates a

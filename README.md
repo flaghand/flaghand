@@ -25,7 +25,7 @@ outside the product's own approval request.** No token can do those things, so t
 ## Pick your path
 
 - **Chat apps: connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`: the same sign-in page handles both. The short guide has the Claude, ChatGPT and mobile steps. Never call `startSignup`, use API sign-up or the CLI from a chat app.
-- **No account yet? The connector's sign-in page creates the account, free, with a passkey, Google or an email link or code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
+- **No account yet? The connector's sign-in page creates the account, free, with Google or an email link or code and no card.** Use its no-account sign-up link, return and click **Allow**, then draft. No separate site sign-up, no shell, no network or environment settings. A chat app's failed fetch or code-runner `CONNECT 403` is its own tool, not a Flaghand API response: use the connector. Do not send an ordinary chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell** (Claude Code, Codex, Cursor, Gemini CLI) and **HTTP clients:** use [HTTP sign-up and access below](https://app.flaghand.com/docs/setup#1-an-account-and-access-to-it), then keep drafting in this same session. Existing access still starts with `getMe`. **Claude Code:** with no access, your first calls are `GET https://app.flaghand.com/api/v1/plans` and `POST https://app.flaghand.com/api/v1/signup` over HTTP, in this session; not `claude mcp add`, `/mcp` or the plugin. MCP is for later sessions ([recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session)).
 
 ## 1. An account and access to it
@@ -90,7 +90,7 @@ link, and collect a token when they finish. The response never says whether the 
    and shared logs. Repeating this call, including while a sign-up is pending, makes a fresh link and claim code;
    it doesn't invalidate earlier links.
 3. Relay `for_person` unchanged alongside `signup_url`; do not invent prices or substitute payment instructions.
-   A new customer completes sign-up with a passkey, Google or an email link or code, then reaches
+   A new customer completes sign-up with Google or an email link or code, then reaches
    `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. Google/email
    sign-up, when configured, needs no passkey; the first approval creates one if needed. An existing
    owner signs in with a configured method, chooses a workspace they own and explicitly clicks **Allow**. The page
@@ -801,7 +801,7 @@ sessions, `gemini extensions install https://github.com/flaghand/flaghand` repla
 - [Flaghand](https://flaghand.com/)
 - [Site index for agents](https://flaghand.com/llms.txt)
 - [App and API index for agents](https://app.flaghand.com/llms.txt)
-- [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person completes the handoff with a passkey, Google or an email link or code.
+- [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person completes the handoff with Google or an email link or code.
 - [Documentation](https://app.flaghand.com/docs)
 - [Agent skill](https://app.flaghand.com/skill.md) — `SKILL.md` here is byte-for-byte the hosted skill.
 - [Agents and client connection recipes](https://app.flaghand.com/docs/agents.md)
