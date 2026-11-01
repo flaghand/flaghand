@@ -366,6 +366,20 @@ post links in `job.result.urls` and, for X, the live read-back in `job.result.ch
 Report a failed job's reason rather than claiming it posted. TikTok may finish in `inbox` (not published) or spend
 time `processing`; details on its creator choices, consent and audit posture: [TikTok's guide](https://app.flaghand.com/docs/tiktok.md).
 
+After posting, offer `requestLiveLink` to add a missing link: `POST …/jobs/{id}/add-link` with
+`{"link_url":"https://example.com/try","label":"Try it here:"}`. LinkedIn appends it to the latest stored live text
+and asks for an in-place edit; X creates a self-reply draft under the original post. Give the owner `review_url` and
+wait for their fresh passkey, never approve or post it yourself. X's `post` is the complete `createPost` result:
+`post.ok:false` means fix the saved reply draft; no approval was requested. Read the resulting edit state or reply
+job and report it, not just the successful request.
+
+If the owner edited a live LinkedIn post directly on LinkedIn, call `recordLiveEdit`
+(`POST …/jobs/{id}/record-live-edit`) with the complete new `text` and optional `tags` and `note`.
+`job.edit.text` becomes the stored live copy; `listLiveEdits` keeps the history. This records what was submitted,
+not a LinkedIn read-back, and never calls the platform or rewrites the original approval. Use it after an outside
+edit rather than trying to PATCH a locked draft or writing the new text in metadata. All agent interfaces
+share these operations; [examples](https://app.flaghand.com/docs/schedule-and-results.md#add-a-link-to-a-live-post).
+
 ## Platform details and safety
 
 - An X thread is **one** `x_thread` draft with ordered `body.posts`, not drafts replying to each other. `reply_to_url`

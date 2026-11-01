@@ -77,7 +77,10 @@ link, and collect a token when they finish. The response never says whether the 
    runs) with each `price`, `currency` and `interval`, plus the `free_start` policy. Legacy `trial_days` is not a
    drafting-duration quote. Tell a new customer the price and current terms before they sign up.
 2. `POST https://app.flaghand.com/api/v1/signup` with `{"email": "person@example.com", "plan": "monthly", "agent_name": "Claude Code", "found_via": "MCP Registry"}`
-   (add `"time_zone": "Europe/London"` if you know it). `found_via` is optional: tell us briefly where you found
+   (add `"time_zone": "Europe/London"` if you know it). Optional `workspace_name` (plain text, up to 80 characters)
+   names a new workspace; existing-owner Allow leaves its name unchanged and the ready claim explains that. `plan` is
+   optional: `plan: null` in the reply means no preference, not a free subscription; Checkout defaults to monthly unless
+   another plan is chosen there. `found_via` is optional: tell us briefly where you found
    Flaghand if you know; it is your own report, separate from any measured directory tag. It answers `signup_url`,
    `for_person`, `claim_code` and `expires_at` (24 hours). **The claim code is a secret like the token:** save this
    start answer in a new private file outside the repository (`umask 077`) before printing anything. Print only
@@ -92,7 +95,7 @@ link, and collect a token when they finish. The response never says whether the 
    subscription or new passkey is needed, and the workspace's original free-start/trial dates stay unchanged. Provider
    or email proof binds Allow to that verified person, not the address the agent typed. Signing in alone grants nothing.
 4. Collect the token with `claimSignup`: `POST https://app.flaghand.com/api/v1/signup/claim` with `{"claim_code": "clm_…"}`.
-   It answers `202 {"status": "pending"}` with `Retry-After: 60` until the new account is created or the existing
+   It answers `202 {"status": "pending"}` with `Retry-After: 5` until the new account is created or the existing
    owner allows the agent, then
    `200 {"status": "ready", "token": "tok_…", "workspace_id": "ws_…", "scopes": [...]}`. **Write the claim answer to a
    private file before printing anything** (in a private user directory outside the repository, using your HTTP tool), print only its
@@ -590,7 +593,11 @@ says so: show `display_name` and the available profile URL, not a blank account 
 saved preview name, handle, picture and X badge/Premium edits; manual headline, CTA and affiliate fields stay.
 
 X logins renew themselves, using the app that issued each login. New X connections use Flaghand's publishing app
-and never request DM access. LinkedIn logins last 60 days, and the desk warns a week ahead; accounts that LinkedIn gives
+and never request DM access. LinkedIn connects a personal profile (`w_member_social`), not a company page. Its logins last
+60 days; `listConnections` and `getSetup` expose the saved `expires_at`. The desk and setup warn a week ahead, and
+`getSetup.next` points to `startConnection` with the pinned account when the intended login is ending or has lapsed
+(or directs the person to Settings if the token lacks `connections`).
+This is advice, not a new posting gate. Accounts that LinkedIn gives
 a refresh token renew automatically. A draft check that returns a `connect` fix means that account needs connecting or
 reconnecting: the same steps. Reconnecting an existing connection accepts only its pinned account; to add a different
 account, start without `connection_id`.
@@ -651,7 +658,7 @@ required fresh proof in the desk; no agent token can call it.
 | [`updateBillingLocation`](https://app.flaghand.com/docs/api/updateBillingLocation.md) | `PATCH /workspaces/{workspace}/billing/location` | `flaghand billing update-location` | `callWriteOperation` | `billing` | Change the remembered billing country and US state; never starts a payment |
 | [`getBilling`](https://app.flaghand.com/docs/api/getBilling.md) | `GET /workspaces/{workspace}/billing` | `flaghand billing get` | `callReadOperation` | `read` | The workspace's plan and whether it can post |
 | [`getMe`](https://app.flaghand.com/docs/api/getMe.md) | `GET /me` | `flaghand meta get-me` | listed | any token | Who is calling, and the workspaces it can use |
-| [`getSetup`](https://app.flaghand.com/docs/api/getSetup.md) | `GET /workspaces/{workspace}/setup` | `flaghand workspaces get-setup` | `callReadOperation` | `read` | Check saved posting setup, upcoming login or plan ends, agent scopes and failing webhooks |
+| [`getSetup`](https://app.flaghand.com/docs/api/getSetup.md) | `GET /workspaces/{workspace}/setup` | `flaghand workspaces get-setup` | listed | `read` | Check saved posting setup, upcoming login or plan ends, agent scopes and failing webhooks |
 | [`listConnections`](https://app.flaghand.com/docs/api/listConnections.md) | `GET /workspaces/{workspace}/connections` | `flaghand connections list` | listed | `read` | The X, LinkedIn and TikTok accounts the workspace posts as |
 | [`startConnection`](https://app.flaghand.com/docs/api/startConnection.md) | `POST /workspaces/{workspace}/connections/{platform}/start` | `flaghand connections start` | `callWriteOperation` | `connections` | Start connecting an account and get the sign-in link for its owner to open (agents can) |
 | [`getConnectionAttempt`](https://app.flaghand.com/docs/api/getConnectionAttempt.md) | `GET /workspaces/{workspace}/connection-attempts/{id}` | `flaghand connections get-attempt` | `callReadOperation` | `read` | Wait for the exact connection link handed to the person |
