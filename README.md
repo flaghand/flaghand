@@ -567,7 +567,7 @@ For a delegated one-time payment instead of recurring Checkout, read `listPlans.
 `billing_country` and `billing_state` when known (for example `GET /api/v1/plans?billing_country=US&billing_state=NY`).
 Discovery without location does not imply global prepaid availability. Stablecoin Checkout has its own
 `listPlans.crypto_checkout.enabled` and `country_policy`, checking both supplied location and trusted edge IP
-country; client-supplied IP headers are not evidence. In live mode only MPP is on; x402 stays off until a later Terms revision. Only when enabled, a token with `billing` scope can call `payPlan`
+country; client-supplied IP headers are not evidence. In live mode MPP and x402 are on. Only when enabled, a token with `billing` scope can call `payPlan`
 (`POST /api/v1/billing/pay`, or `flaghand billing pay`) for a 402 MPP and/or x402 challenge. Its body accepts optional
 `billing:{country:"US",state:"NY"}`: an ISO alpha-2 country and, for the US, a two-letter postal state code.
 The location is remembered per workspace billing account and returned as `getBilling.billing_location`.
@@ -614,7 +614,6 @@ US billing country/state AND known US trusted edge-IP country are required at qu
 truth: paid time requires Stripe-verified USD settlement, a matching succeeded Stripe PaymentIntent and verified
 paid Charge for the exact mode, customer, quoted USD amount/currency and Base transaction/network/asset. The paid
 result includes `x402:{transaction,network,payer}` and HTTP `PAYMENT-RESPONSE`; no auto renewal or post approval is granted.
-Live x402 remains off until separate legal, security and tax approval.
 
 A lost or pending payment result still means recover the same `payment_id` and plan, never double buy. Read
 [the complete payment and recovery contract](https://app.flaghand.com/docs/billing.md#prepaid-payments-for-agents). `paid_through`, `prepaid`,
