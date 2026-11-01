@@ -1,5 +1,7 @@
 # Flaghand: MCP server for AI agents — owners approve X, LinkedIn and TikTok posts
 
+**Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
+
 Agents draft, upload media, check and request approval. Only the owner's passkey approves the exact text, media,
 account and time; Flaghand posts exactly that. **Agents never approve, schedule, post, start a waiting job or send
 a DM for anyone.** Request approval through Flaghand, not in chat.
@@ -340,6 +342,8 @@ The person can instead install the plugin, which bundles the skill and the same 
 <!-- claude-code-plugin:end -->
 
 ### Claude Code: finish in this session
+
+**Agents: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). The OAuth MCP steps are person-run: `claude mcp add`, `/mcp` and the plugin are not your first step.**
 
 MCP is optional, not the sign-up transport. Use HTTP for `listPlans`, `startSignup` and `claimSignup` above even
 when no MCP tools are connected. Write the ready claim's answer to a private file before printing anything, then
