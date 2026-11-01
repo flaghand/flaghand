@@ -440,15 +440,16 @@ recipes are in the [agents guide](https://app.flaghand.com/docs/agents.md).
 
 ### Gemini CLI
 
-Install the first-party client extension from the public docs repository:
+A Gemini CLI agent with no access signs up over HTTP in this session ([first post](https://app.flaghand.com/docs/first-post.md)) and keeps drafting
+with the claimed token; never ask the person to install anything, run `/mcp` or restart. For later sessions, merge the
+one checked recipe into `~/.gemini/settings.json` (or the project's `.gemini/settings.json`):
 
-```sh
-gemini extensions install https://github.com/flaghand/flaghand
+```json
+{ "mcpServers": { "flaghand": { "httpUrl": "https://app.flaghand.com/mcp", "oauth": { "enabled": true } } } }
 ```
 
-Restart Gemini, then run `/mcp auth flaghand` and complete the owner's configured person sign-in and explicit Allow. The extension uses
-`httpUrl: https://app.flaghand.com/mcp`. Call `getMe` to confirm the workspace and scopes; installing an extension alone is not
-proof of authentication. The extension contains client configuration and context, not Flaghand's server code.
+In the next session `/mcp auth flaghand` runs the owner's configured person sign-in and explicit Allow. Call `getMe` to
+confirm the workspace and scopes; a configured server alone is not proof of authentication.
 
 ## 3. Check who you are and what is set up
 
@@ -707,6 +708,10 @@ Next: [draft and request approval](https://app.flaghand.com/docs/drafting.md). A
 [media and threads](https://app.flaghand.com/docs/media-and-threads.md), [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md),
 [billing](https://app.flaghand.com/docs/billing.md) and [errors](https://app.flaghand.com/docs/errors.md).
 
+
+This repository is also a Gemini CLI extension carrying that same `httpUrl` server and a short context file. For later
+sessions, `gemini extensions install https://github.com/flaghand/flaghand` replaces the `settings.json` merge; then
+`/mcp auth flaghand` in the next session. An agent setting up for its person still signs up over HTTP first.
 
 ## Docs and discovery
 
