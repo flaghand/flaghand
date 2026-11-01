@@ -139,8 +139,9 @@ the account, the second uses sign-in and Allow, and each agent claims its own co
 subscription, trial or free-start window. [Interrupted sign-up and durable Checkout](https://app.flaghand.com/docs/billing.md#picking-up-an-interrupted-sign-up).
 
 When the plan is ready, give the person its `approval_url`, not a separate up-front payment task. On `/approve` they
-see the plan, price and estimated first-charge timing, use one button to add a card in Stripe Checkout, and return for
-the normal passkey approval. If they have no passkey, that same sheet first creates one, then makes the separate
+see the plan, price and estimated first-charge timing. When staged Managed Payments is enabled, they tick the
+initially unticked renewal-consent box here before opening Stripe Checkout; that billing consent needs no passkey.
+They return for the separate normal passkey post approval. If they have no passkey, that same sheet first creates one, then makes the separate
 approval assertion: two taps by the person, never the agent. Checkout shows the exact trial charge date and time before
 card entry. Adding a card never approves, schedules or posts. Read `free_start` in `/api/v1/plans` for whether
 card trials are enabled, their cutoff and the minimum from Checkout creation (not card addition). A new Checkout charges
@@ -154,14 +155,23 @@ Follow the billing link in `next` or a `workspace_inactive` error's `next_step`;
 `billing`, so the owner handles the card step in the product. A compatible open Checkout is reused, and a finished
 one is confirmed before another can start; don't pay again just because a return or webhook was interrupted.
 
-For a separate `startCheckout`, relay its `for_person` unchanged alongside `checkout_url`. An agent may instead finish
-Checkout with a **Link-issued recurring credential its person approved**, never a card supplied in chat; wallet approval
-does not replace the person's separate renewal consent. Read plans for `amount`, `currency` and `interval` (founding
-must cover the $190 renewal, not only the $149 first year) and ensure the card remains valid through the authorized
-period. Use `pay_with: "agent_card"` for a recurring virtual card or `"link"` to also offer Link's UI. When enabled,
-both first return HTTP 202 with `consent_url` and `for_person`: the person ticks the saved A3 terms and confirms with
-their own passkey on Flaghand, then the agent retries `startCheckout`. The agent-paid Checkout has no renewal box;
-never tick the person's ordinary Checkout box for them. [Paying as an agent](https://app.flaghand.com/docs/billing#paying-as-an-agent) has spend-request,
+For a separate `startCheckout`, relay `for_person` unchanged with `consent_url` when consent is required, otherwise
+`checkout_url`. The staged `STRIPE_MANAGED_PAYMENTS` switch covers recurring plans, card/Link prepaid plans and credit
+packs: configured test keys default on unless `"false"`; live keys require `"true"`. This is not a claim of live
+activation. When enabled, API/MCP/WebMCP subscription requests with omitted `pay_with` or `pay_with:"card"` return the Flaghand
+person renewal-consent link, never a direct Checkout. The person ticks the box on Billing or `/approve` without a
+billing passkey. Managed Payments Checkout has no Stripe renewal checkbox or custom renewal text. When disabled,
+ordinary card Checkout retains its existing Stripe consent flow.
+
+An agent may instead finish Checkout with a **Link-issued recurring credential its person approved**, never a card
+supplied in chat; wallet approval does not replace separate renewal consent. Read plans for `amount`, `currency` and
+`interval` (founding must cover the USD $190 renewal, not only the $149 first year).
+Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
+Ensure the card remains valid through the authorized period. Use `pay_with:"agent_card"` for a recurring virtual
+card or `"link"` to also offer Link's UI. Both keep their own passkey-consent page: when enabled they first return
+HTTP 202 with `consent_url` and `for_person`; the person ticks the saved A3 terms and confirms with their own passkey
+on Flaghand, then the agent retries `startCheckout`. Agent-paid Checkout has no renewal box; never tick any person's
+renewal box on Flaghand or Stripe. [Paying as an agent](https://app.flaghand.com/docs/billing#paying-as-an-agent) has spend-request,
 CLI/MCP/WebMCP, consent, expiry and Link Pay Token test-mode instructions. Pass this short
 `https://app.flaghand.com/pay#…` Flaghand link **verbatim**, including its entire `#` fragment and in Markdown; do not follow it to copy Stripe's destination,
 shorten it or substitute a raw Stripe URL. Flaghand restores Stripe's complete URL, including the fragment card entry
@@ -172,10 +182,13 @@ Checkout terms and actual first-charge date, not a fresh trial or an invented qu
 own link; never reuse a sentence from an earlier Checkout. If `recovery` is `incomplete`, `unpaid` or `paused`,
 `checkout_url` instead continues that subscription's original card authentication or opens its Stripe invoice or billing
 Portal, and `next_step` explains what to do. Relay that recovery handoff, not a new-plan price or trial quote; no second subscription is created.
-For a paused subscription, the link pays its resumption invoice. Payment still never approves or posts.
+A non-Managed paused subscription uses its resumption invoice. Managed Payments owns its subscription recovery;
+Flaghand does not directly pay its invoices or create another plan to recover them. Payment still never approves or posts.
 
-Current prices are $19/month, or the founding offer of $149 for the first year, then $190/year, while available.
-Always read plans for current terms. Eligibility and what each plan state allows: [billing](https://app.flaghand.com/docs/billing.md).
+With staged Managed Payments enabled, worldwide base prices are USD $19/month or $190/year, or founding USD $149 for the first year, then
+$190/year, while available. Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
+Managed Payments Checkout may show local currency through Adaptive Pricing. Always read plans for current terms.
+Eligibility and what each plan state allows: [billing](https://app.flaghand.com/docs/billing.md).
 
 `POST /api/v1/signup`, auth.md's sign-up alias `POST /agent/identity`, `POST /api/v1/auth/enroll`, and email
 `POST /api/v1/auth/email/request` and `/api/v1/auth/email/verify` share one approximate 30-request-per-minute allowance
@@ -461,9 +474,10 @@ expires, a `lapsed` workspace needs Billing before another draft.
   send-back notes, then supply the whole draft plan; this advice never approves or posts anything.
 
 A single prepaid period can also use `startCheckout` with `{plan:"monthly",mode:"payment",managed_payments:true}`
-when `listPlans.managed_payments_checkout.enabled`. It never renews, so it needs no renewal-consent box or passkey
-renewal step. Relay its unchanged `checkout_url` and `for_person`, or pay only with a Link-issued credential the
-person approved: add `pay_with:"agent_card"` or `"link"` (when enabled). Never type a card from chat. Request one-time
+when `listPlans.managed_payments_checkout.enabled`. The staged shared switch makes Managed Payments the card/Link
+default when enabled, while `mode:"payment"` is still required for prepaid. It never renews, so it needs no
+renewal-consent box or passkey renewal step. Relay its unchanged `checkout_url` and `for_person`, or pay only with a
+Link-issued credential the person approved: add `pay_with:"agent_card"` or `"link"` (when enabled). Never type a card from chat. Request one-time
 spend authority, not a recurring interval, and obtain approval for Stripe's actual tax-inclusive total before payment.
 Save its payment/Session IDs and recover the same purchase. Live waits for its separate rollout.
 [One-time Managed Payments](https://app.flaghand.com/docs/billing.md#one-time-managed-payments-checkout).
