@@ -392,6 +392,7 @@ tool runs each operation.
 
 ### Claude Code: saved-token MCP
 
+<!-- claude-code-plugin:start -->
 **Choose ONE connection: the plugin's OAuth MCP OR a standalone token MCP.** The plugin server is
 `plugin:flaghand:flaghand`; a standalone entry is `flaghand`. Different names can leave two connections to the same
 workspace, with different credentials. Installing the skill alone does not add an MCP server.
@@ -404,6 +405,7 @@ workspace, with different credentials. Installing the skill alone does not add a
   This also disables/removes its skill and commands; keep the [standalone skill](https://app.flaghand.com/docs/agents.md#install-the-agent-skill)
   if needed. Do not try `claude mcp remove plugin:flaghand:flaghand`: plugin servers are managed through the plugin.
   A person who wants to retain the plugin's skill can instead disable only its MCP server in `/mcp`.
+<!-- claude-code-plugin:end -->
 
 On **macOS**, prefer `headersHelper` over a static environment-variable header: it reads the saved token at connection
 time, so later shells do not need to export `FLAGHAND_TOKEN`. First save the token with the CLI's
