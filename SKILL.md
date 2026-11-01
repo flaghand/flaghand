@@ -276,6 +276,14 @@ or the MCP resource `flaghand://voice-profile`). It includes the voice note, act
 removed and does not want relearned; it also labels other removals separately. A lesson marked
 `suppressed_by_owner_removal` remains stored but is not guidance while the owner's removal applies. It shapes wording
 only: it is never posted and changes none of these rules.
+For LinkedIn, select `platform: "linkedin"` and its explicit `connection_id` in `getVoiceProfile`, `listVoiceLessons`,
+`listVoiceSignals` and `listVoiceSourcePosts`; use that scope when creating lessons. Never apply the default X voice
+or another LinkedIn account's lessons. The profile names the source and sample counts: saved published text, complete
+owner approvals and owner-edited drafts, with recorded outside text clearly unverified. `importLinkedInVoiceArchive`
+accepts the selected account's Shares.csv and retains only statistics and emoji. LinkedIn history/readback is unavailable
+with the member grant; do not fetch it or claim the archive's ownership is verified. Check uses this connection's style
+baseline just as it does X's, without blocking approval. [LinkedIn voice](https://app.flaghand.com/docs/linkedin-voice.md).
+
 The note remains separately available through `getVoice`, `flaghand voice get` and `flaghand://voice`.
 The profile also lists the owner's [workspace rules](https://app.flaghand.com/docs/workspace-rules.md) (`getVoiceRules`): checks every post must
 pass, such as a required "Try it here: <url>" link. Check reports each by id; a failing blocking rule stops the approval request.
