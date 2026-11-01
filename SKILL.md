@@ -338,7 +338,7 @@ rules. This uses the stored hourly reads, not new X reads or model training; for
    their post reused from someone else's post is still theirs); for a page, a link card links back to it instead. Remote MCP takes `data_base64`, `content_type`, `filename` and `alt`,
    only for small files you write yourself, never a video; the local CLI/stdio MCP can take a readable `file` instead.
    A file the person has, attached in a chat or on their phone, goes through Files: give them
-   `https://app.flaghand.com/?workspace=ws_…#files` with their workspace id, ask them to add it there and paste what **Copy for your
+   `https://app.flaghand.com/files?workspace=ws_…` with their workspace id, ask them to add it there and paste what **Copy for your
    agent** gives them (one `med_` id, name and length per line), or read `listMedia`. Nothing posts from Files. Check a
    video with `getMedia`, never `getMediaContent`. [Where a file can come from](https://app.flaghand.com/docs/media-and-threads.md#where-a-file-can-come-from). Upload reads width, height and duration from the file.
    For animated WebP or an unusual video it cannot read, supply real `width` and `height` as digit strings (for example
