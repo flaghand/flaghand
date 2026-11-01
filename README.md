@@ -569,6 +569,10 @@ and doesn't replace the draft check.
 `platform` (`x`, `linkedin` or `tiktok`), `handle`, `display_name` and `status`. Use the `id` of the **active**
 connection as each draft's `connection_id`. If a platform has several, match the handle the person named, or ask.
 
+**TikTok:** no scheduling; a TikTok post goes out when the owner approves it. Until TikTok audits the app, posting
+directly works only for a private account as Only me (`SELF_ONLY`); otherwise send the draft to the creator's TikTok
+inbox ([TikTok](https://app.flaghand.com/docs/tiktok.md#until-tiktok-audits-the-app)). Don't promise a public or scheduled TikTok post.
+
 **LinkedIn Pages (separate Community Development app):** only where that app is configured, send
 `{"linkedin_organization":"urn:li:organization:12345"}` to the LinkedIn `startConnection` body (the actual Page URN,
 not a member ID). The Page administrator grants access; it creates a separate Page connection and never replaces a
