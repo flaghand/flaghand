@@ -1,6 +1,6 @@
 ---
 name: flaghand
-description: Draft, check and request approval for X, LinkedIn and TikTok posts through Flaghand. Use when the user asks to write, schedule or publish social content. Only the owner approves with a passkey; agents never approve, schedule or post.
+description: Draft, check and request approval for X, LinkedIn, Bluesky and TikTok posts through Flaghand. Use when the user asks to write, schedule or publish social content. Only the owner approves with a passkey; agents never approve, schedule or post.
 ---
 
 # Flaghand

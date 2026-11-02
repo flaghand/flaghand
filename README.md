@@ -1,4 +1,4 @@
-# Flaghand: MCP server for AI agents — owners approve X, LinkedIn and TikTok posts
+# Flaghand: MCP server for AI agents — owners approve X, LinkedIn, Bluesky and TikTok posts
 
 **Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
 
@@ -17,7 +17,7 @@ Everything an agent needs before its first draft: an account, access to the work
 the accounts the posts go out as, and the owner's voice note. This page is complete on its own; the next one is
 [draft and request approval](https://app.flaghand.com/docs/drafting.md).
 
-Flaghand drafts, checks and posts X, LinkedIn and TikTok posts for a person. An agent drafts, uploads media, checks
+Flaghand drafts, checks and posts X, LinkedIn, Bluesky and TikTok posts for a person. An agent drafts, uploads media, checks
 and requests approval; only the workspace owner approves with their passkey, and Flaghand posts only the exact snapshot they
 approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
 outside the product's own approval request.** No token can do those things, so there is nothing to work around.
