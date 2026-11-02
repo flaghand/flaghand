@@ -667,7 +667,9 @@ only they authorize it on the platform's own consent screen. Settings is the fal
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
   reconnect that account) answers `url`, `for_person`, `attempt_id` (`cat_…`) and `expires_at`. Relay `for_person`
   **unchanged** alongside `url`; it names the platform (and the pinned account on reconnect), explains consent and
-  says that nothing posts without the owner's passkey approval. They sign in on the platform and allow Flaghand.
+  says that nothing posts without the owner's passkey approval. The link opens Flaghand first: signed in as the
+  workspace's owner they go straight to the platform; anyone else sees the workspace and its owner and presses Continue.
+  They sign in on the platform and allow Flaghand.
   Do not name or guess any button on the page.
 - Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
 
