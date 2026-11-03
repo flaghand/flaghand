@@ -1,10 +1,72 @@
-# Flaghand: MCP server for AI agents — owners approve X, LinkedIn, Bluesky and TikTok posts
+# Flaghand: social media MCP server for AI agents — the owner approves every post
+
+Flaghand is a hosted social publishing desk for AI agents. Your agent (Claude, ChatGPT, Claude Code, Codex, Cursor,
+Gemini CLI or your own) drafts posts for X, LinkedIn, TikTok, YouTube and more through Flaghand's MCP server, CLI or
+HTTP API. You approve each exact post with a passkey, and Flaghand posts exactly that, at its time. Website: [https://flaghand.com](https://flaghand.com/).
 
 **Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
 
 Agents draft, upload media, check and request approval. Only the owner's passkey approves the exact text, media,
 account and time; Flaghand posts exactly that. **Agents never approve, schedule, post, start a waiting job or send
 a DM for anyone.** Request approval through Flaghand, not in chat.
+
+## At a glance
+
+**What is Flaghand?** One hosted MCP server, CLI and HTTP API for drafting, checking and scheduling social posts with
+an AI agent, plus a web desk where the owner reviews and approves them. Previews are drawn the way each network shows
+the post. Made by Trellisbyte LLC.
+
+**Which networks?**
+
+- X: posts, threads, polls, media and replies.
+- LinkedIn: personal profiles, not company Pages.
+- Bluesky: posts and threads.
+- TikTok: photo and video posts. Until TikTok audits the app, direct posts go only to private accounts; any account
+  can receive them as drafts in its TikTok inbox ([TikTok](https://app.flaghand.com/docs/tiktok.md)).
+- YouTube: videos, Shorts, comment replies and playlist changes ([YouTube](https://app.flaghand.com/docs/youtube.md)).
+- Pinterest: image, carousel and video Pins on business accounts ([Pinterest](https://app.flaghand.com/docs/pinterest.md)).
+
+**How does approval work?** Agent tokens can draft, upload media, check drafts and request approval. No token can
+approve, schedule or post. The owner opens the approval request, sees each post as it will appear, and approves the
+exact text, media, account and time with a passkey (Face ID or Touch ID). Flaghand posts only that
+snapshot and refuses anything changed after approval. Details: [approvals](https://app.flaghand.com/docs/approvals.md).
+
+**What does it cost?** One plan: $19 a month or $190 a year (two months free), with 1,500 credits a month. Posting to X
+spends credits (3 per post or thread part, 40 for a post with a link); posting to the other networks doesn't. 7 days free
+to draft, no card to start. Current prices: [https://flaghand.com/pricing](https://flaghand.com/pricing), read live from the
+[plans endpoint](https://app.flaghand.com/api/v1/plans).
+
+**Which agents work with it?** Any MCP client with the server URL `https://app.flaghand.com/mcp`: Claude and ChatGPT as a connector,
+Claude Code, Codex, Cursor and Gemini CLI. Scripts, n8n, Make, Zapier and GitHub Actions use the HTTP API
+(`https://app.flaghand.com/api/v1`, [OpenAPI](https://app.flaghand.com/api/v1/openapi.json)) or the `flaghand` CLI.
+
+**Is it open source?** No. This repository holds only the public docs, agent skill and client manifests (MIT-0). The
+hosted service, its server and the CLI are private.
+
+## Set up in 3 steps (people)
+
+1. **Add the MCP server.** In Claude or ChatGPT, add a custom connector with the URL `https://app.flaghand.com/mcp`. In Claude Code, type
+   `claude mcp add --scope user --transport http flaghand https://app.flaghand.com/mcp`, then `/mcp`. Codex, Cursor and Gemini CLI
+   recipes: [agents](https://app.flaghand.com/docs/agents.md).
+2. **Sign in and allow your agent.** The connector's sign-in page creates the account with a passkey, Google or an email link or code,
+   no card needed. Click **Allow**, then connect the accounts your posts go out as when your agent sends the link.
+3. **Ask for a post, then approve it.** Your agent drafts and checks the post and sends an approval request. Approve it
+   in the desk with one passkey tap; Flaghand posts it at its time and reports the result.
+
+The CLI runs the same operations from a shell with Node 20 or later: see
+[Shells, including Windows](https://app.flaghand.com/docs/setup.md#shells-including-windows). Agents setting up for their person start over HTTP instead:
+[An account and access to it](https://app.flaghand.com/docs/setup.md#1-an-account-and-access-to-it).
+
+## Guides
+
+- [Connect LinkedIn and X to Claude Code](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-claude-code), [ChatGPT](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-chatgpt), [Codex](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-codex), [Cursor](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-cursor), [Gemini](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-gemini)
+- [X MCP server](https://flaghand.com/x-mcp-server) and [LinkedIn MCP server](https://flaghand.com/linkedin-mcp-server)
+- [X API and MCP servers for AI agents](https://flaghand.com/docs/guides/x-api-and-mcp-servers-for-ai-agents) and [Best LinkedIn MCP servers](https://flaghand.com/docs/guides/best-linkedin-mcp-servers)
+- [Let an AI agent post safely](https://flaghand.com/docs/guides/let-an-ai-agent-post-safely) and [Social media approval workflow](https://flaghand.com/docs/guides/social-media-approval-workflow)
+- [Flaghand vs Buffer](https://flaghand.com/docs/guides/flaghand-vs-buffer), [Flaghand vs Typefully](https://flaghand.com/docs/guides/flaghand-vs-typefully), [all comparisons](https://flaghand.com/compare)
+- [All guides](https://flaghand.com/docs/guides)
+
+## Full setup guide
 
 Public sign-up is **open**. The
 [plans endpoint](https://app.flaghand.com/api/v1/plans) reports the current `signup_open` state. Only submit a waitlist address whose
