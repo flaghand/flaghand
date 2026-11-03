@@ -493,7 +493,7 @@ import { createHash } from "node:crypto"; import { mkdtempSync, writeFileSync } 
 const get = async (url) => { const r = await fetch(url); if (!r.ok) throw Error("HTTP " + r.status + " from " + url); return r; };
 const cli = await (await get("https://app.flaghand.com/cli/latest.json")).json(), tgz = Buffer.from(await (await get(cli.url)).arrayBuffer());
 if ("sha512-" + createHash("sha512").update(tgz).digest("base64") !== cli.integrity) throw Error("The CLI archive does not match the catalog SHA-512");
-const file = join(mkdtempSync(join(tmpdir(), "flaghand-cli-")), "flaghand.tgz"); writeFileSync(file, tgz); console.log(file)')"
+const file = join(mkdtempSync(join(tmpdir(), "flaghand-cli-")), "flaghand.tgz"); writeFileSync(file, tgz); console.log(file)')" || FLAGHAND_CLI=/nonexistent/flaghand-cli-unverified.tgz
 ```
 PowerShell:
 ```powershell
