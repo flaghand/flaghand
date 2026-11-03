@@ -2,7 +2,7 @@
 
 Flaghand is a hosted social publishing desk for AI agents. Your agent (Claude, ChatGPT, Claude Code, Codex, Cursor,
 Gemini CLI or your own) drafts posts for X, LinkedIn, TikTok, YouTube and more through Flaghand's MCP server, CLI or
-HTTP API. You approve each exact post with a passkey, and Flaghand posts exactly that, at its time. Website: [https://flaghand.com](https://flaghand.com/).
+HTTP API. You approve each exact post with a passkey, and Flaghand posts exactly that, at its time. Website: [https://flaghand.com](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo).
 
 **Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
 
@@ -33,7 +33,7 @@ snapshot and refuses anything changed after approval. Details: [approvals](https
 
 **What does it cost?** One plan: $19 a month or $190 a year (two months free), with 1,500 credits a month. Posting to X
 spends credits (3 per post or thread part, 40 for a post with a link); posting to the other networks doesn't. 7 days free
-to draft, no card to start. Current prices: [https://flaghand.com/pricing](https://flaghand.com/pricing), read live from the
+to draft, no card to start. Current prices: [https://flaghand.com/pricing](https://flaghand.com/pricing?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), read live from the
 [plans endpoint](https://app.flaghand.com/api/v1/plans).
 
 **Which agents work with it?** Any MCP client with the server URL `https://app.flaghand.com/mcp`: Claude and ChatGPT as a connector,
@@ -59,12 +59,12 @@ The CLI runs the same operations from a shell with Node 20 or later: see
 
 ## Guides
 
-- [Connect LinkedIn and X to Claude Code](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-claude-code), [ChatGPT](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-chatgpt), [Codex](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-codex), [Cursor](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-cursor), [Gemini](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-gemini)
-- [X MCP server](https://flaghand.com/x-mcp-server) and [LinkedIn MCP server](https://flaghand.com/linkedin-mcp-server)
-- [X API and MCP servers for AI agents](https://flaghand.com/docs/guides/x-api-and-mcp-servers-for-ai-agents) and [Best LinkedIn MCP servers](https://flaghand.com/docs/guides/best-linkedin-mcp-servers)
-- [Let an AI agent post safely](https://flaghand.com/docs/guides/let-an-ai-agent-post-safely) and [Social media approval workflow](https://flaghand.com/docs/guides/social-media-approval-workflow)
-- [Flaghand vs Buffer](https://flaghand.com/docs/guides/flaghand-vs-buffer), [Flaghand vs Typefully](https://flaghand.com/docs/guides/flaghand-vs-typefully), [all comparisons](https://flaghand.com/compare)
-- [All guides](https://flaghand.com/docs/guides)
+- [Connect LinkedIn and X to Claude Code](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-claude-code?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [ChatGPT](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-chatgpt?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [Codex](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-codex?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [Cursor](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-cursor?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [Gemini](https://flaghand.com/docs/guides/connect-linkedin-and-x-to-gemini?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [X MCP server](https://flaghand.com/x-mcp-server?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo) and [LinkedIn MCP server](https://flaghand.com/linkedin-mcp-server?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [X API and MCP servers for AI agents](https://flaghand.com/docs/guides/x-api-and-mcp-servers-for-ai-agents?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo) and [Best LinkedIn MCP servers](https://flaghand.com/docs/guides/best-linkedin-mcp-servers?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [Let an AI agent post safely](https://flaghand.com/docs/guides/let-an-ai-agent-post-safely?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo) and [Social media approval workflow](https://flaghand.com/docs/guides/social-media-approval-workflow?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [Flaghand vs Buffer](https://flaghand.com/docs/guides/flaghand-vs-buffer?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [Flaghand vs Typefully](https://flaghand.com/docs/guides/flaghand-vs-typefully?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo), [all comparisons](https://flaghand.com/compare?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [All guides](https://flaghand.com/docs/guides?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
 
 ## Full setup guide
 
@@ -862,7 +862,7 @@ sessions, `gemini extensions install https://github.com/flaghand/flaghand` repla
 
 ## Docs and discovery
 
-- [Flaghand](https://flaghand.com/)
+- [Flaghand](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
 - [Site index for agents](https://flaghand.com/llms.txt)
 - [App and API index for agents](https://app.flaghand.com/llms.txt)
 - [auth.md agent registration](https://app.flaghand.com/auth.md) — open protocol; the person completes the handoff with Google or an email link or code.
@@ -870,8 +870,8 @@ sessions, `gemini extensions install https://github.com/flaghand/flaghand` repla
 - [Agent skill](https://app.flaghand.com/skill.md) — `SKILL.md` here is byte-for-byte the hosted skill.
 - [Agents and client connection recipes](https://app.flaghand.com/docs/agents.md)
 - [Billing and trial terms](https://app.flaghand.com/docs/billing.md)
-- [Published terms](https://flaghand.com/terms)
-- [Service status](https://flaghand.com/status)
+- [Published terms](https://flaghand.com/terms?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
+- [Service status](https://flaghand.com/status?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo)
 - [Official MCP Registry entry](https://registry.modelcontextprotocol.io/v0/servers/com.flaghand%2Fflaghand/versions/latest)
 
 Support: **support@flaghand.com**. This is a docs-only repository; Flaghand's application code remains private.
