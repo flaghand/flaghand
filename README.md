@@ -443,8 +443,8 @@ HTTP already works; no hot-loading of newly added servers is assumed.
 The plugin also contains the same skill instructions. Its bundled MCP uses OAuth; if it isn't authenticated in this
 session, use this HTTP path rather than sending the person to `/mcp` or claiming the plugin is connected.
 
-The MCP server lists fourteen tools for the drafting loop: `getMe`, `getSetup`, `listConnections`, `uploadMedia`,
-`createPost`, `createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `getOperation`,
+The MCP server lists fifteen tools for the drafting loop and owner-requested feedback: `getMe`, `getSetup`, `listConnections`, `uploadMedia`,
+`createPost`, `createDraft`, `getDraft`, `updateDraft`, `checkDraft`, `requestApproval`, `listJobs`, `send_feedback`, `getOperation`,
 `callReadOperation` and `callWriteOperation`. Everything else is one step away: `getOperation` with
 `{"operation_id": "getConnectionAttempt"}` returns its schema, then `callReadOperation` (reads) or `callWriteOperation`
 (writes) runs it with `{"operation_id": "getConnectionAttempt", "arguments": {"id": "cat_…"}}`; each refuses the other
