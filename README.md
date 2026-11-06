@@ -27,10 +27,10 @@ the post. Made by Trellisbyte LLC.
 - YouTube: videos, Shorts, comment replies and playlist changes ([YouTube](https://app.flaghand.com/docs/youtube.md)).
 - Pinterest: image, carousel and video Pins on business accounts ([Pinterest](https://app.flaghand.com/docs/pinterest.md)).
 
-**How does approval work?** Agent tokens can draft, upload media, check drafts and request approval. No token can
-approve, schedule or post. The owner opens the approval request, sees each post as it will appear, and approves the
-exact text, media, account and time with a passkey (Face ID or Touch ID). Flaghand posts only that
-snapshot and refuses anything changed after approval. Details: [approvals](https://app.flaghand.com/docs/approvals.md).
+**How does approval work?** Agent tokens can draft, upload media, check drafts, request approval and manage future
+scheduled posts without a per-post passkey. Tokens cannot approve or post immediately. For owner approval, the person
+sees each post as it will appear and approves its exact text, media, account and time with a passkey (Face ID or Touch ID).
+Flaghand posts the exact authorized snapshot; changes need a new schedule or approval. Details: [approvals](https://app.flaghand.com/docs/approvals.md).
 
 **What does it cost?** One plan: $19 a month or $190 a year (two months free), with 1,500 credits a month. Posting to X
 spends credits (3 per post or thread part, 40 for a post with a link); posting to the other networks doesn't. 7 days free
@@ -81,9 +81,9 @@ the accounts the posts go out as, and the owner's voice note. This page is compl
 [draft and request approval](https://app.flaghand.com/docs/drafting.md).
 
 Flaghand drafts, checks and posts X, LinkedIn, Bluesky and TikTok posts for a person. An agent drafts, uploads media, checks
-and requests approval; only the workspace owner approves with their passkey, and Flaghand posts only the exact snapshot they
-approved. **Never approve, schedule, post, start a waiting job or send a DM for anyone, and never ask for approval
-outside the product's own approval request.** No token can do those things, so there is nothing to work around.
+and can manage future scheduled posts without a per-post passkey. The owner approves immediate posting with their passkey;
+Flaghand posts the exact authorized content, account and time. **Never approve, post immediately, start a waiting job or
+send a DM for anyone, and never ask for approval outside the product's own approval request.**
 
 ## Pick your path
 
