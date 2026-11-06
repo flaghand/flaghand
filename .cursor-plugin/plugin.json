@@ -1,7 +1,7 @@
 {
   "name": "flaghand",
-  "version": "1.0.0",
-  "description": "Agents draft X and LinkedIn posts. Only your passkey approves. Flaghand posts exactly that.",
+  "version": "1.0.1",
+  "description": "Draft, check and schedule future social posts. Agents never approve or post immediately; owner approval uses a passkey.",
   "author": {
     "name": "Flaghand",
     "email": "support@flaghand.com"

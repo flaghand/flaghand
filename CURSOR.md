@@ -1,7 +1,8 @@
 # Flaghand for Cursor
 
-Agents draft X and LinkedIn posts, upload media, check and request approval. Only the workspace owner's passkey
-approves the exact post. Agents cannot approve, schedule or post.
+Agents draft X and LinkedIn posts, upload media, check and manage future schedules without a per-post passkey.
+Agents never approve, post immediately, start a waiting job or send a DM. Only the workspace owner approves
+the exact snapshot with a passkey; immediate posting stays owner-only.
 
 This repository contains the MIT-0 plugin files and documentation, not Flaghand's server source. The plugin connects
 to Flaghand, a paid hosted service. Installing it does not create an account, start a subscription or grant access to
@@ -10,7 +11,7 @@ a workspace. Read the [current plans and sign-up availability](https://app.flagh
 
 ## Plugin contents
 
-- `.cursor-plugin/plugin.json`: Cursor plugin manifest, version 1.0.0.
+- `.cursor-plugin/plugin.json`: Cursor plugin manifest, version 1.0.1.
 - `mcp.json`: remote Streamable HTTP MCP server at `https://app.flaghand.com/mcp`, with OAuth and no bundled credential.
 - `SKILL.md`: the canonical Flaghand skill. Cursor discovers this root-level file when no `skills/` directory or
   manifest `skills` field exists. Keeping one file avoids a stale copy of the hosted skill.
@@ -33,7 +34,8 @@ installable does not mean it has been admitted to Cursor's Marketplace or cursor
 
 For an existing account, authenticate the Flaghand MCP server through Cursor's normal OAuth flow: the owner signs
 in with their passkey, selects the intended workspace and chooses Allow. The grant is limited to `read`, `drafts`,
-`media` and `request-approval`, and can be revoked in Flaghand **Settings › Agents**. Call `getMe` to verify the
+`media` and `request-approval`. The `drafts` scope permits checked future schedules; no agent scope permits approval
+or immediate posting. Access can be revoked in Flaghand **Settings › Agents**. Call `getMe` to verify the
 workspace and scopes before claiming the connection works. Unauthenticated `initialize` returning `401` with
 `WWW-Authenticate` and `resource_metadata` is the expected OAuth challenge, not a successful connection.
 
@@ -63,7 +65,12 @@ Choose the plugin or a manual same-named MCP entry, not both. The MCP-only optio
 - “List my Flaghand drafts and tell me which are waiting for approval. Don't edit or publish anything.”
 - “Draft a LinkedIn post from these release notes, check it and request my approval. Don't approve, schedule or publish.”
 
-Use the returned Flaghand approval link, not a chat confirmation. Only the owner approves in the desk.
+For future scheduling, follow [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling): `schedulePost`,
+`updateScheduledPost` and `unschedulePost` need the `drafts` scope, with no per-post passkey. Use `getOperation`
+and the indicated operation wrapper for tools not listed. Report the live check afterwards. Schedules retain immutable
+checked evidence, and owners receive one digest per changed workspace hour.
+
+For owner approval, use the returned Flaghand approval link, not a chat confirmation. Only the owner approves in the desk.
 
 [Agent docs](https://app.flaghand.com/docs/agents.md) · [Privacy](https://flaghand.com/privacy) ·
 [Terms](https://flaghand.com/terms) · [Support](mailto:support@flaghand.com)

@@ -1,7 +1,7 @@
 {
   "name": "flaghand",
-  "version": "1.0.0",
-  "description": "Draft, check and request approval for X, LinkedIn and TikTok posts. Only the owner approves with a passkey; agents never approve, schedule or post.",
+  "version": "1.0.1",
+  "description": "Draft, check and schedule future social posts. Agents never approve or post immediately; owner approval uses a passkey.",
   "mcpServers": {
     "flaghand": {
       "httpUrl": "https://app.flaghand.com/mcp"
