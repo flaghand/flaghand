@@ -1,18 +1,21 @@
 ---
 name: flaghand
-description: Draft, check and request approval for X, LinkedIn, Bluesky and TikTok posts through Flaghand. Use when the user asks to write, schedule or publish social content. Only the owner approves with a passkey; agents never approve, schedule or post.
+description: Draft, check, schedule future posts and request approval for X, LinkedIn, Bluesky and TikTok posts through Flaghand. Use when the user asks to write, schedule or publish social content. Only the owner approves with a passkey; agents never approve or post immediately.
 ---
 
 # Flaghand
 
-A publishing desk for people and their AI agents. You draft, upload media, check and request approval. Only the
-workspace owner approves the exact snapshot with a passkey; Flaghand posts only what they approved.
+A publishing desk for people and their AI agents. You draft, upload media, check and manage future scheduled posts.
+Use `schedulePost`, `updateScheduledPost` and `unschedulePost` with the `drafts` scope; no per-post passkey is needed.
+See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling). Owners receive one digest per changed
+hour. Only the owner can approve or post immediately, with their passkey.
 
 - **Chat apps (Claude, ChatGPT, other OAuth MCP apps): connector first, new or existing account, don't ask.** Follow [Set up in a chat app](https://app.flaghand.com/docs/chat.md) with `https://app.flaghand.com/mcp`; never use `startSignup`, API sign-up or the CLI from a chat app. The connector's sign-in page creates the account free with Google or an email link or code, no card; click Allow, then draft. No separate site sign-up, no shell, no network or environment settings; do not send a chat user to Claude Code or claude.ai/code.
 - **Coding agents with a shell (Claude Code, Codex, Cursor, Gemini CLI) and HTTP clients:** use [HTTP sign-up](https://app.flaghand.com/docs/first-post.md); keep the claimed token and finish in this same session.
 
-**Never approve, schedule, post, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
-outside the product's own approval request. For a requested publishing plan (including `/shipped`), use one `createPost`
+**Never approve, post immediately, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
+outside the product's own approval request. For a future schedule, use the scheduling tools above. For a plan the owner
+should approve (including `/shipped`), use one `createPost`
 for the whole ready plan, give the owner its `approval_url`, then wait. A suggestion batch is different:
 use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
 `import_key`, best first within a shared `suggestion.run_id`, and leave it in [Suggested](https://app.flaghand.com/suggested) for
@@ -465,7 +468,7 @@ share these operations; [examples](https://app.flaghand.com/docs/schedule-and-re
   Read [drafts and media](https://app.flaghand.com/docs/drafts-and-media.md#find-a-linkedin-companys-organization-urn).
 - Any edit to an approved snapshot voids its approval. Read its state and explain that consequence before changing it.
   `owner_session_required` or `approval_required` means the owner must act in the desk, not that you should escalate
-  credentials. API tokens cannot gain approval, scheduling or posting powers.
+  credentials. API tokens cannot gain passkey approval or immediate posting powers.
 - Errors include `code` and `message` (HTTP: `{ "error": { "code": "…", "message": "…" } }`), and may include
   `next_step` with the owner's add-card/billing link. Explain the message and resolve the stated problem; do not
   claim success on an error or treat payment as approval.

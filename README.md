@@ -1,14 +1,15 @@
-# Flaghand: social media MCP server for AI agents — the owner approves every post
+# Flaghand: social media MCP server for AI agents
 
 Flaghand is a hosted social publishing desk for AI agents. Your agent (Claude, ChatGPT, Claude Code, Codex, Cursor,
 Gemini CLI or your own) drafts posts for X, LinkedIn, TikTok, YouTube and more through Flaghand's MCP server, CLI or
-HTTP API. You approve each exact post with a passkey, and Flaghand posts exactly that, at its time. Website: [https://flaghand.com](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo).
+HTTP API. Agents can schedule and manage future posts, with one hourly email showing what changed. You approve
+immediate posting with a passkey. Website: [https://flaghand.com](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo).
 
 **Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
 
-Agents draft, upload media, check and request approval. Only the owner's passkey approves the exact text, media,
-account and time; Flaghand posts exactly that. **Agents never approve, schedule, post, start a waiting job or send
-a DM for anyone.** Request approval through Flaghand, not in chat.
+Agents draft, upload media, check, schedule future posts and request owner approval when needed. Each scheduled post
+keeps its exact checked text, media, account and time. **Agents never approve, post immediately, start a waiting job or
+send a DM for anyone.** Request owner approval through Flaghand, not in chat.
 
 ## At a glance
 
@@ -782,7 +783,7 @@ even if billing has lapsed. Credentials are deleted immediately and pending post
 Flaghand asks X or TikTok to revoke the grant. If the platform is unavailable, the local deletion still stands;
 remove the app in the platform's settings too. LinkedIn has no self-serve revoke endpoint, so remove the app there as
 well. A platform request already in flight cannot be recalled. An agent can start a connection and read its health,
-but cannot disconnect, approve, schedule or post.
+and manage future scheduled posts, but cannot disconnect, approve or post immediately.
 
 ## 5. Read the owner's voice profile first
 
