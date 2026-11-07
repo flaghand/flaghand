@@ -2,19 +2,19 @@
 
 Flaghand is a hosted social publishing desk for AI agents. Your agent (Claude, ChatGPT, Claude Code, Codex, Cursor,
 Gemini CLI or your own) drafts posts for X, LinkedIn, TikTok, YouTube and more through Flaghand's MCP server, CLI or
-HTTP API. Agents can schedule and manage future posts, with one hourly email showing what changed. You approve
-immediate posting with a passkey. Website: [https://flaghand.com](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo).
+HTTP API. Every post sits on one schedule you can edit until it goes, with one hourly email when your agent changes
+it. Website: [https://flaghand.com](https://flaghand.com/?utm_source=github&utm_medium=readme&utm_campaign=flaghand_launch_nov2026&utm_content=flaghand-repo).
 
 **Agents with a shell: sign up over HTTP first (`POST https://app.flaghand.com/api/v1/signup`). OAuth MCP steps are person-run.** Chat apps use the connector.
 
-Agents draft, upload media, check, schedule future posts and request owner approval when needed. Each scheduled post
-keeps its exact checked text, media, account and time. **Agents never approve, post immediately, start a waiting job or
-send a DM for anyone.** Request owner approval through Flaghand, not in chat.
+Agents draft, upload media, check, and schedule, edit or remove future posts. Posts scheduled by you or your agent
+publish at their time. **Agents never post right now, start a waiting job or send a DM for anyone.** Your
+agent asks you through Flaghand, not in chat, before anything posts right now.
 
 ## At a glance
 
 **What is Flaghand?** One hosted MCP server, CLI and HTTP API for drafting, checking and scheduling social posts with
-an AI agent, plus a web desk where the owner reviews and approves them. Previews are drawn the way each network shows
+an AI agent, plus a web desk with every post on one schedule. Previews are drawn the way each network shows
 the post. Made by Trellisbyte LLC.
 
 **Which networks?**
@@ -27,10 +27,9 @@ the post. Made by Trellisbyte LLC.
 - YouTube: videos, Shorts, comment replies and playlist changes ([YouTube](https://app.flaghand.com/docs/youtube.md)).
 - Pinterest: image, carousel and video Pins on business accounts ([Pinterest](https://app.flaghand.com/docs/pinterest.md)).
 
-**How does approval work?** Agent tokens can draft, upload media, check drafts, request approval and manage future
-scheduled posts without a per-post passkey. Tokens cannot approve or post immediately. For owner approval, the person
-sees each post as it will appear and approves its exact text, media, account and time with a passkey (Face ID or Touch ID).
-Flaghand posts the exact authorized snapshot; changes need a new schedule or approval. Details: [approvals](https://app.flaghand.com/docs/approvals.md).
+**Who posts, and when?** You or your agent schedule; Flaghand posts on time, exactly as previewed, after checking each
+post again. Agent tokens cannot connect accounts or post right now: your agent asks, and you confirm with a passkey
+(Face ID or Touch ID). Details: [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md).
 
 **What does it cost?** One plan: $19 a month or $190 a year (two months free), with 1,500 credits a month. Posting to X
 spends credits (3 per post or thread part, 40 for a post with a link); posting to the other networks doesn't. 7 days free
@@ -51,8 +50,9 @@ hosted service, its server and the CLI are private.
    recipes: [agents](https://app.flaghand.com/docs/agents.md).
 2. **Sign in and allow your agent.** The connector's sign-in page creates the account with a passkey, Google or an email link or code,
    no card needed. Click **Allow**, then connect the accounts your posts go out as when your agent sends the link.
-3. **Ask for a post, then approve it.** Your agent drafts and checks the post and sends an approval request. Approve it
-   in the desk with one passkey tap; Flaghand posts it at its time and reports the result.
+3. **Ask for a post.** Your agent drafts, checks and schedules it. Add a card with your first post. Edit or remove it on
+   your schedule until it goes;
+   Flaghand posts it on time and reports the result.
 
 The CLI runs the same operations from a shell with Node 20 or later: see
 [Shells, including Windows](https://app.flaghand.com/docs/setup.md#shells-including-windows). Agents setting up for their person start over HTTP instead:
