@@ -6,9 +6,9 @@ description: Draft, check and schedule X, LinkedIn, Bluesky and TikTok posts thr
 # Flaghand
 
 A publishing desk for people and their AI agents, with every post on one schedule. You draft, upload media, check,
-schedule, move and unschedule future posts. A scheduled post publishes at its time with no approval step.
+schedule, move and unschedule future posts. Ordinary social posts publish at their time without another approval.
 Use `createPost` for a plan, or `schedulePost`, `updateScheduledPost` and `unschedulePost` one post at a time, with the
-`drafts` scope; no per-post passkey is needed. See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling).
+`drafts` scope. Email campaigns require the owner’s passkey for each exact snapshot; ordinary social posts do not. See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling).
 Owners see every post on the schedule and receive one digest per changed hour. Only the owner posts immediately, with
 their passkey.
 
@@ -17,7 +17,7 @@ their passkey.
 
 **Never approve, post immediately, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
 outside the product's own approval request. For a requested publishing plan (including `/shipped`), use one `createPost`
-for the whole ready plan: each future post is scheduled at its time. Only an item that posts now or by hand comes back as an `approval_url`
+for the whole ready plan: each future post is scheduled at its time. Email campaigns and items that post now or by hand come back as an `approval_url`
 for the owner; give it to them, then wait. A suggestion batch is different:
 use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
 `import_key`, best first within a shared `suggestion.run_id`, and leave it in [Suggested](https://app.flaghand.com/suggested) for
@@ -344,7 +344,7 @@ one you already prepared):
 that time with no approval step. `post_now` and `approve` (a decision only, no posting) go to the owner as an
 `approval_url`; only the owner posts immediately. For `schedule`, supply an ISO 8601 `post_at` with `Z` or an
 explicit UTC offset, at least 2 minutes and at most 90 days ahead, or `next_slot`. By-hand posts, unpicked options,
-TikTok and YouTube posts (the owner makes their posting-screen choices) and
+email campaigns (the owner confirms each exact campaign with their passkey), TikTok and YouTube posts (the owner makes their posting-screen choices) and
 every item in a workspace that can't post yet (a new workspace's first plan, where the owner adds a card) go to the
 owner too.
 For hand-posting (`by_hand`), never promise automatic posting for a hand step.
@@ -362,6 +362,10 @@ At most 50 drafts per plan; send the rest as a next plan and say so. [Many files
 Reach warnings do not stop scheduling: address them in the preparation step above. The answer lists `jobs` and
 `scheduled`, any `unscheduled` with its reason, and an `approval_url` only for items that need the owner. It never
 approves or posts immediately. HTTP: `POST /api/v1/workspaces/{workspace}/posts`, with `Idempotency-Key` as a header instead of a JSON field.
+
+## Email campaigns
+
+Use a connected Resend account and `resend_broadcast`. Pick a verified sender domain with `listEmailSenders` and a segment with `listEmailSegments`. Draft `subject`, `preview_text`, `from`, `reply_to`, `segment_id` and `html`; include a postal address and `{{{RESEND_UNSUBSCRIBE_URL}}}`. Images use absolute HTTPS URLs. Check, then use `createPost` with a future time and give the owner `approval_url`: each campaign needs their passkey. It appears on `/posts`. An agent edit or move cancels its old send and asks again; `unschedulePost` removes it. Never send now, read recipients or retry a timed-out send yourself. [Email campaign details](https://app.flaghand.com/docs/drafting.md#email-campaigns).
 
 ## Fixes and retries
 
