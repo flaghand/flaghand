@@ -720,8 +720,9 @@ inbox ([TikTok](https://app.flaghand.com/docs/tiktok.md#until-tiktok-audits-the-
 not a member ID). The Page administrator grants access; it creates a separate Page connection and never replaces a
 personal-profile login. Use its returned `connection_id` explicitly on every Page draft. Reconnect preserves its
 issuing app, granting member and Page; omit the Page field for the unchanged personal-profile path. This is a
-Development integration, not a claim of Standard access, follower discovery, comments or analytics. All real posts
-still require the owner's exact passkey approval.
+Development integration, not a claim of Standard access, follower discovery, comments or analytics. Ordinary future
+Page posts follow the [schedule-first flow](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling); immediate posting still requires
+the owner's exact passkey approval.
 
 No active account for a platform: call `startConnection` for that platform and give the person the returned link;
 only they authorize it on the platform's own consent screen. Settings is the fallback when the token lacks `connections` scope.
@@ -729,9 +730,12 @@ only they authorize it on the platform's own consent screen. Settings is the fal
 - With the `connections` scope (a new-account claim has it; an existing-owner grant does not), start it for them: `startConnection`
   (`POST /api/v1/workspaces/{workspace}/connections/{platform}/start`, body `{}`, or `{"connection_id": "con_…"}` to
   reconnect that account) answers `url`, `for_person`, `attempt_id` (`cat_…`) and `expires_at`. Relay `for_person`
-  **unchanged** alongside `url`; it names the platform (and the pinned account on reconnect), explains consent and
-  says that nothing posts without the owner's passkey approval. The link opens Flaghand first: signed in as the
-  workspace's owner they go straight to the platform; anyone else sees the workspace and its owner and presses Continue.
+  **unchanged** alongside `url`; it names the platform (and the pinned account on reconnect) and explains consent.
+  Connecting does not publish anything. Once the workspace can post, agents can schedule ordinary future social posts
+  without per-post passkey approval; immediate posting still requires the owner's passkey approval of the exact post.
+  Owner-only platform choices and every Pinterest Pin still need owner confirmation, even when scheduled.
+  The link opens Flaghand first: signed in as the workspace's owner they go straight to the platform; anyone else
+  sees the workspace and its owner and presses Continue.
   They sign in on the platform and allow Flaghand.
   Do not name or guess any button on the page.
 - Without it, ask them to connect the account in the desk, from its accounts menu or Settings.
