@@ -8,7 +8,7 @@ description: Draft, check and schedule X, LinkedIn, Bluesky and TikTok posts thr
 A publishing desk for people and their AI agents, with every post on one schedule. You draft, upload media, check,
 schedule, move and unschedule future posts. Ordinary social posts publish at their time without another approval.
 Use `createPost` for a plan, or `schedulePost`, `updateScheduledPost` and `unschedulePost` one post at a time, with the
-`drafts` scope. Email campaigns require the owner’s passkey for each exact snapshot; ordinary social posts do not. See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling).
+`drafts` scope. Email campaigns and each Pinterest Pin require the owner’s passkey for each exact snapshot; ordinary social posts do not. See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling).
 Owners see every post on the schedule and receive one digest per changed hour. Only the owner posts immediately, with
 their passkey.
 
@@ -17,7 +17,7 @@ their passkey.
 
 **Never approve, post immediately, start a waiting job or send a DM for anyone.** Never ask for approval in chat or
 outside the product's own approval request. For a requested publishing plan (including `/shipped`), use one `createPost`
-for the whole ready plan: each future post is scheduled at its time. Email campaigns and items that post now or by hand come back as an `approval_url`
+for the whole ready plan: each future post is scheduled at its time. Email campaigns, each Pinterest Pin, TikTok or YouTube choices, unpicked options, a new workspace’s first plan and items that post now or by hand come back as an `approval_url`
 for the owner; give it to them, then wait. A suggestion batch is different:
 use MCP `suggest_posts` or `suggest_replies`: create and check each ordinary draft with a stable
 `import_key`, best first within a shared `suggestion.run_id`, and leave it in [Suggested](https://app.flaghand.com/suggested) for

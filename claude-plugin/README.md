@@ -2,7 +2,7 @@
 
 Your agents draft and schedule future posts. You approve immediate posting.
 
-Flaghand is a publishing desk for connected social accounts, built for people and their AI agents. With this plugin, Claude drafts posts and threads, uploads media with alt text, checks each draft against the platform's rules and schedules ordinary future posts without a per-post passkey. Claude reports each scheduled time and any owner confirmation link. Only you confirm posting now, by-hand posts, unpicked options, TikTok or YouTube choices and a new workspace's first plan, on app.flaghand.com with your passkey.
+Flaghand is a publishing desk for connected social accounts, built for people and their AI agents. With this plugin, Claude drafts posts and threads, uploads media with alt text, checks each draft against the platform's rules and schedules ordinary future posts without a per-post passkey. Claude reports each scheduled time and any owner confirmation link. Only you confirm posting now, by-hand posts, unpicked options, TikTok or YouTube choices, each Pinterest Pin and a new workspace's first plan, on app.flaghand.com with your passkey.
 
 ## What's in it
 
