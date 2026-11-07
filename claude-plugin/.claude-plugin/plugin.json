@@ -1,8 +1,8 @@
 {
   "name": "flaghand",
   "displayName": "Flaghand",
-  "version": "1.0.66",
-  "description": "Draft, check and request owner approval in Flaghand. Agents can manage future schedules, but never approve or post immediately.",
+  "version": "1.0.67",
+  "description": "Schedule, edit and check posts in Flaghand. Every post on one schedule; agents never post right now.",
   "author": {
     "name": "Flaghand",
     "email": "support@flaghand.com",
