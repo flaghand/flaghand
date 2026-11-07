@@ -1,7 +1,7 @@
 {
   "name": "flaghand",
   "displayName": "Flaghand",
-  "version": "1.0.70",
+  "version": "1.0.71",
   "description": "Schedule, edit and check posts in Flaghand. Every post on one schedule; agents never post right now.",
   "author": {
     "name": "Flaghand",
