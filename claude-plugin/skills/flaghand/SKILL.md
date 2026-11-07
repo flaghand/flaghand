@@ -348,11 +348,12 @@ one you already prepared):
 }
 ```
 
-`mode` says how each post goes out. `schedule` uses the draft's `post_at` and is scheduled at once: a job posts it at
-that time with no approval step. `post_now` and `approve` (a decision only, no posting) go to the owner as an
-`approval_url`; only the owner posts immediately. For `schedule`, supply an ISO 8601 `post_at` with `Z` or an
-explicit UTC offset, at least 2 minutes and at most 90 days ahead, or `next_slot`. By-hand posts, unpicked options,
-email campaigns (the owner confirms each exact campaign with their passkey), TikTok and YouTube posts (the owner makes their posting-screen choices) and
+`mode` says how each post goes out. For ordinary future social posts, `schedule` uses the draft's `post_at` and
+schedules at once: a job posts it at that time without per-post approval. `post_now` and `approve` (a decision only,
+no posting) go to the owner as an `approval_url`; only the owner posts immediately. For `schedule`, supply an ISO 8601
+`post_at` with `Z` or an explicit UTC offset, at least 2 minutes and at most 90 days ahead, or `next_slot`.
+By-hand posts, unpicked options, email campaigns and each Pinterest Pin (the owner confirms each exact snapshot with
+their passkey), TikTok and YouTube posts (the owner confirms fresh posting-screen choices for each schedule or change) and
 every item in a workspace that can't post yet (a new workspace's first plan, where the owner adds a card) go to the
 owner too.
 For hand-posting (`by_hand`), never promise automatic posting for a hand step.
