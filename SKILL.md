@@ -34,7 +34,7 @@ reply rules. After approval, use only the server's `reply_on_x_url`. `suggestion
 not a posted reply; `posted-by-hand` records the live link separately. Reply on X is the person's own action: give them the link, one reply at a time, in a separate tab,
 window or X app, never an iframe or MCP App frame. No agent, script, extension or WebMCP tool presses Reply on X.
 
-New here? [From sign-up to the first approval request](https://app.flaghand.com/docs/first-post.md) is the short HTTP path, without
+New here? [From sign-up to the first scheduled post](https://app.flaghand.com/docs/first-post.md) is the short HTTP path, without
 installing anything else. The docs are also one page per task, each complete on its own: [set up and connect](https://app.flaghand.com/docs/setup.md),
 [draft and schedule](https://app.flaghand.com/docs/drafting.md), [media and threads](https://app.flaghand.com/docs/media-and-threads.md),
 [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md), [billing](https://app.flaghand.com/docs/billing.md) and
