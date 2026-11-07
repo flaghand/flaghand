@@ -1,6 +1,6 @@
 # Flaghand
 
-Your agents write. You approve. Flaghand posts exactly that.
+Your agents draft and schedule future posts. You approve immediate posting.
 
 Flaghand is a publishing desk for X, LinkedIn and TikTok, built for people and their AI agents. With this plugin, Claude can draft an X post, an X thread, a LinkedIn post or a TikTok photo or video post, upload media with alt text, check each draft against the platform's rules and send you one approval link. Claude can manage future scheduled posts without a per-post passkey, but cannot approve or post immediately. Only you approve, on app.flaghand.com, with your passkey, signed over the exact version you saw.
 
@@ -20,7 +20,7 @@ You need a Flaghand account with an active workspace plan where the tools requir
 
 ## What it sends and runs
 
-- Your content goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, video, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes only what you approved, to the X, LinkedIn or TikTok account you connected.
+- Your content goes only to Flaghand's hosted service at app.flaghand.com: the drafts, images, video, alt text and notes you ask Claude to create, including the summaries `/flaghand:shipped` writes from your repository. Flaghand publishes checked future schedules and owner-approved posts to the accounts you connected. Agents never approve, post immediately or send DMs.
 - `/flaghand:shipped` also asks GitHub, through your own signed-in `gh`, which pull requests merged in that repository. It sends nothing else to GitHub.
 - The plugin has no hooks and no local server, and it downloads and runs no software of its own. Besides your `git` and `gh` for `/flaghand:shipped`, Claude reaches Flaghand only through the MCP server above or, during setup from a shell, Flaghand's HTTP API at app.flaghand.com.
 - The plugin keeps no data of its own. During setup from a shell, the skill has Claude save Flaghand's sign-up and claim replies in private files outside your repository and the Flaghand token in your own secret storage, never in a draft, note or log. What Flaghand keeps, and for how long: [Privacy](https://flaghand.com/privacy).

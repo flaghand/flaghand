@@ -167,8 +167,7 @@ link, and collect a token when they finish. The response never says whether the 
    private file before printing anything** (in a private user directory outside the repository, using your HTTP tool), print only its
    `status`, `workspace_id` and `scopes`, and move the token into [persistent credential storage](https://app.flaghand.com/docs/setup#save-and-rediscover-access).
    New accounts get every agent scope, `connections` and `billing` included; existing-account grants get only the four
-   OAuth scopes above. Read the returned `scopes`, never assume broader access. Like every token, neither can approve,
-   schedule or post. After that, the code alone never issues the token again. Within 7 days of registration or Allow,
+   OAuth scopes above. Read the returned `scopes`, never assume broader access. Both can schedule and manage future posts with drafts, without a per-post passkey. Neither can approve, post immediately or send DMs. After that, the code alone never issues the token again. Within 7 days of registration or Allow,
    claiming with the current token as `Authorization: Bearer` rotates it: the same `token_id` comes back with a new
    secret and `"replaced": true`, and the earlier secret stops working. If the token is lost anyway (never saved, a
    dropped reply, a crashed shell), claim without it: the `202` answer has `next_step: "owner_approves_reissue"`, a
@@ -300,7 +299,7 @@ For future agents, add **one credential-free line** to the project's `CLAUDE.md`
 (Codex), creating the file if absent. Record only the origin, verified workspace and credential **locator**, never its value. For example:
 
 ```text
-Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents only draft/check/request approval.
+Flaghand: https://app.flaghand.com, workspace ws_…; access via flaghand CLI login (macOS Keychain service flaghand, account https://app.flaghand.com); first run flaghand me --json, then getSetup/getBilling; reuse this account and any open Checkout; agents draft, check and manage future schedules; never approve, post immediately or send DMs.
 ```
 
 Replace that locator with the actual CLI file path, secret-manager item name, or OAuth MCP server name/profile you
@@ -683,8 +682,7 @@ A lost or pending payment result still means recover the same `payment_id` and p
 `auto_renews` and `next_payment_step` in saved billing/setup distinguish prepaid from a renewing subscription.
 If prepaid extends beyond Stripe's 730-day deferral maximum, recurring `startCheckout` returns `checkout_url:null`
 with `recurring_available_from` and a `for_person` message: no plan or charge started, and one can start on or after
-that date. Relay the message instead of opening a null URL; prepaid access is unchanged. Payment still requires a
-separate owner passkey approval before any post.
+that date. Relay the message instead of opening a null URL; prepaid access is unchanged. Payment never approves a post. Agents can schedule future posts with `drafts`; immediate posting needs the owner's passkey approval.
 
 Load the named operation with `getOperation` before calling it: `next.arguments` contains only what is already
 known, not a complete draft plan or a guessed platform/plan choice. Call only operations your token's returned scopes
