@@ -2,13 +2,13 @@
 
 Your agents draft and schedule future posts. You approve immediate posting.
 
-Flaghand is a publishing desk for X, LinkedIn and TikTok, built for people and their AI agents. With this plugin, Claude can draft an X post, an X thread, a LinkedIn post or a TikTok photo or video post, upload media with alt text, check each draft against the platform's rules and send you one approval link. Claude can manage future scheduled posts without a per-post passkey, but cannot approve or post immediately. Only you approve, on app.flaghand.com, with your passkey, signed over the exact version you saw.
+Flaghand is a publishing desk for connected social accounts, built for people and their AI agents. With this plugin, Claude drafts posts and threads, uploads media with alt text, checks each draft against the platform's rules and schedules ordinary future posts without a per-post passkey. Claude reports each scheduled time and any owner confirmation link. Only you confirm posting now, by-hand posts, unpicked options, TikTok or YouTube choices and a new workspace's first plan, on app.flaghand.com with your passkey.
 
 ## What's in it
 
 - **Flaghand MCP server** at `https://app.flaghand.com/mcp`, the same remote server as the Flaghand connector. Sign in with your passkey, pick a workspace and click Allow. Claude's access is limited to reading, drafting, uploading media, sharing private preview links, managing future schedules and requesting approval. Revoke it any time in Settings › Agents.
-- **The `flaghand` skill**: how to draft, check and request approval in your own voice, and how an agent with a shell finishes setup over Flaghand's HTTP API.
-- **The `/flaghand:shipped [YYYY-MM-DD]` command**: in a git checkout, it reads what the repository merged since that date (default: the last 7 days) with `git log` and, if the GitHub CLI is signed in, `gh pr list`. It then drafts one X post or thread and one LinkedIn post and returns one approval link. It never checks out, commits, pushes or comments.
+- **The `flaghand` skill**: how to draft, check and schedule in your own voice, and how an agent with a shell finishes setup over Flaghand's HTTP API.
+- **The `/flaghand:shipped [YYYY-MM-DD]` command**: in a git checkout, it reads what the repository merged since that date (default: the last 7 days) with `git log` and, if the GitHub CLI is signed in, `gh pr list`. It then drafts and checks one X post or thread and one LinkedIn post, and reports their scheduled times or any owner confirmation link. It never checks out, commits, pushes or comments.
 
 ## Install
 

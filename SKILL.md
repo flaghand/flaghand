@@ -402,7 +402,7 @@ CLI: `flaghand posts create`.
 
 ## Email campaigns
 
-Use a connected Resend account and `resend_broadcast`. Pick a verified sender domain with `listEmailSenders` and a segment with `listEmailSegments`. Draft `subject`, `preview_text`, `from`, `reply_to`, `segment_id` and `html`; include a postal address and `{{{RESEND_UNSUBSCRIBE_URL}}}`. Images use absolute HTTPS URLs. Check, then use `createPost` with a future time and give the owner `approval_url`: each campaign needs their passkey. It appears on `/posts`. An agent edit or move cancels its old send and asks again; `unschedulePost` removes it. Never send now, read recipients or retry a timed-out send yourself. [Email campaign details](https://app.flaghand.com/docs/drafting.md#email-campaigns).
+Where Resend is enabled for the workspace, use its connected Resend account and `resend_broadcast`. Pick a verified sender domain with `listEmailSenders` and a segment with `listEmailSegments`. Draft `subject`, `preview_text`, `from`, `reply_to`, `segment_id` and `html`; include a postal address and `{{{RESEND_UNSUBSCRIBE_URL}}}`. Images use absolute HTTPS URLs. Check, then use `createPost` with a future time and give the owner `approval_url`: each campaign needs their passkey. It appears on `/posts`. An agent edit or move cancels its old send and asks again; `unschedulePost` removes it. Never send now, read recipients or retry a timed-out send yourself. [Email campaign details](https://app.flaghand.com/docs/drafting.md#email-campaigns).
 
 ## Fixes and retries
 
