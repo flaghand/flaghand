@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "description": "Agents draft and schedule future social posts over MCP; immediate posting needs your passkey.",
+  "description": "The social media scheduler for AI agents. Agents schedule over MCP; Flaghand posts on time.",
   "icons": [
     {
       "mimeType": "image/svg+xml",
@@ -25,6 +25,6 @@
     }
   ],
   "title": "Flaghand",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "websiteUrl": "https://flaghand.com/?utm_source=mcp-directory&utm_medium=referral&utm_campaign=flaghand_launch_nov2026&utm_content=registry"
 }
