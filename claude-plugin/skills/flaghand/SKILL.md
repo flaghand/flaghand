@@ -5,7 +5,7 @@ description: Draft, check and schedule X, LinkedIn, Bluesky, TikTok, YouTube and
 
 # Flaghand
 
-A publishing desk for people and their AI agents, with every post on one schedule. You draft, upload media, check,
+The social media scheduler for people and their AI agents. You draft, upload media, check,
 schedule, move and unschedule future posts. Ordinary social posts publish at their time without another approval.
 Use `createPost` for a plan, or `schedulePost`, `updateScheduledPost` and `unschedulePost` one post at a time, with the
 `drafts` scope. Email campaigns and each Pinterest Pin require the owner’s passkey for each exact snapshot; ordinary social posts do not. See [agent scheduling](https://app.flaghand.com/docs/schedule-and-results.md#agent-scheduling).

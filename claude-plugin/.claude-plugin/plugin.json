@@ -1,8 +1,8 @@
 {
   "name": "flaghand",
   "displayName": "Flaghand",
-  "version": "1.0.77",
-  "description": "Schedule, edit and check posts in Flaghand. Every post on one schedule; agents never post right now.",
+  "version": "1.0.78",
+  "description": "Flaghand, the social media scheduler for AI agents: schedule, edit and check posts. Agents never post right now.",
   "author": {
     "name": "Flaghand",
     "email": "support@flaghand.com",

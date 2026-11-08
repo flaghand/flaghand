@@ -76,6 +76,8 @@ Public sign-up is **open**. The
 person asked to join. The instructions below are the same [setup guide](https://app.flaghand.com/docs/setup.md) served by the app,
 including its current CLI recipe and sign-up path.
 
+<!-- docs-include:start -->
+
 # Set up and connect
 
 Everything an agent needs before its first draft: an account, access to the workspace, the MCP server or the HTTP API,
@@ -862,6 +864,8 @@ Next: [draft and schedule](https://app.flaghand.com/docs/drafting.md). Also comp
 [media and threads](https://app.flaghand.com/docs/media-and-threads.md), [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md),
 [billing](https://app.flaghand.com/docs/billing.md) and [errors](https://app.flaghand.com/docs/errors.md).
 
+
+<!-- docs-include:end -->
 
 This repository is also a Gemini CLI extension carrying that same `httpUrl` server and a short context file. For later
 sessions, `gemini extensions install https://github.com/flaghand/flaghand` replaces the `settings.json` merge; then
