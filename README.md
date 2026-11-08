@@ -26,6 +26,8 @@ the post. Made by Trellisbyte LLC.
   can receive them as drafts in its TikTok inbox ([TikTok](https://app.flaghand.com/docs/tiktok.md)).
 - YouTube: videos, Shorts, comment replies and playlist changes ([YouTube](https://app.flaghand.com/docs/youtube.md)).
 - Pinterest: image, carousel and video Pins on business accounts ([Pinterest](https://app.flaghand.com/docs/pinterest.md)).
+- Patreon: by hand. Flaghand prepares the post and reminds you at its time; you publish it on Patreon
+  ([Patreon](https://app.flaghand.com/docs/patreon.md)).
 
 **Who posts, and when?** You or your agent schedule; Flaghand posts on time, exactly as previewed, after checking each
 post again. Agent tokens cannot connect accounts or post right now: your agent asks, and you confirm with a passkey
