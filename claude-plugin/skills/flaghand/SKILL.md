@@ -166,7 +166,7 @@ They get only `read`, `drafts`, `media` and `request-approval`. Every MCP reques
 For shell/HTTP clients while sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
 owner signs in with a configured method and explicitly allows this agent, and `claimSignup` returns a token with those four scopes.
 While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
-in secret storage or `FLAGHAND_TOKEN`, never in a draft, note, command argument or shared log. Write `claimSignup`'s
+in secret storage, never in a draft, note, command argument or shared log. Write `claimSignup`'s
 answer to a private file before printing anything. If its token is lost anyway, claim again with the same code within
 7 days of registration or Allow: the answer has an `approve_url` for the person (a workspace owner taps Reissue), then
 claiming with `claim_code` and `reissue_code` returns the same `token_id` with a new secret. The HTTP API base is
