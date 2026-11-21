@@ -152,19 +152,22 @@ link, and collect a token when they finish. The response never says whether the 
    optional: `plan: null` in the reply means no preference, not a free subscription; Checkout defaults to monthly unless
    another plan is chosen there. `found_via` is optional: tell us briefly where you found
    Flaghand if you know; it is your own report, separate from any measured directory tag. It answers `signup_url`,
-   `for_person`, `claim_code` and `expires_at` (24 hours). **The claim code is a secret like the token:** save this
+   `for_person`, `user_code`, `claim_code` and `expires_at` (24 hours). **The claim code is a secret like the token:** save this
    start answer in a new private file outside the repository (`umask 077`) before printing anything. Print only
    `for_person`, `signup_url` and the expiry, never `claim_code`; keep it out of chat, command arguments, shell history
-   and shared logs. Repeating this call, including while a sign-up is pending, makes a fresh link and claim code;
-   it doesn't invalidate earlier links.
+   and shared logs. `user_code` (`XXXX-XXXX`) is the code an existing owner types before Allow, and `for_person` ends
+   with it. It isn't a secret like the claim code, but show it only to your own person. Repeating this call, including
+   while a sign-up is pending, makes a fresh link, code and claim code; it doesn't invalidate earlier links.
 3. Relay `for_person` unchanged alongside `signup_url`; do not invent prices or substitute payment instructions.
    A new customer completes sign-up with Google or an email link or code, then reaches
    `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. Google/email
    sign-up, when configured, needs no passkey; the first approval creates one if needed. An existing
-   owner signs in with a configured method, chooses a workspace they own and explicitly clicks **Allow**. The page
+   owner signs in with a configured method, chooses a workspace they own, types the code from `for_person` and
+   explicitly clicks **Allow**. A missing or wrong code answers `user_code_mismatch` and allows nothing. The page
    shows the agent's name and the four scopes it gets: `read`, `drafts`, `media`, `request-approval`. No second account,
    subscription or new passkey is needed, and the workspace's original free-start/trial dates stay unchanged. Provider
    or email proof binds Allow to that verified person, not the address the agent typed. Signing in alone grants nothing.
+   Every owner of the workspace is emailed at once, with a link to review or revoke the agent in Settings › Agents.
 4. Collect the token with `claimSignup`: `POST https://app.flaghand.com/api/v1/signup/claim` with `{"claim_code": "clm_…"}`.
    It answers `202 {"status": "pending"}` with `Retry-After: 5` until the new account is created or the existing
    owner allows the agent, then
@@ -204,9 +207,9 @@ ask for a fresh `startSignup` with the same email. After registration, resume th
 sign-in method rather than creating another account. The original claim code remains collectible for seven days after
 registration or consent unless revoked. If the token is lost but its code is saved, claim again and give the person
 the returned `approve_url` to approve a new secret.
-If the code is lost or stopped working, a new link lets the existing owner sign in and explicitly Allow the agent,
-with only the four OAuth scopes. Two pending links stay independent, including in the same tab: the first creates
-the account, the second uses sign-in and Allow, and each agent claims its own code. None creates a second account,
+If the claim code is lost or stopped working, a new link lets the existing owner sign in, type its new `user_code` and
+explicitly Allow the agent, with only the four OAuth scopes. Two pending links stay independent, including in the same
+tab: the first creates the account, the second uses sign-in, its own `user_code` and Allow, and each agent claims its own code. None creates a second account,
 subscription, trial or free-start window. [Interrupted sign-up and durable Checkout](https://app.flaghand.com/docs/billing.md#picking-up-an-interrupted-sign-up).
 
 When the plan is ready, give the person its `approval_url`, not a separate up-front payment task. On `/approve` they
@@ -369,7 +372,7 @@ The MCP server is `https://app.flaghand.com/mcp` (streamable HTTP). Every reques
 `401` with `WWW-Authenticate` sends an OAuth client to sign-in.
 
 - **Claude Code, the agent doing the setup:** work over HTTP in this session; MCP isn't needed. With no
-  account: `GET https://app.flaghand.com/api/v1/plans`, `POST https://app.flaghand.com/api/v1/signup`, give the person `signup_url`, then
+  account: `GET https://app.flaghand.com/api/v1/plans`, `POST https://app.flaghand.com/api/v1/signup`, give the person `for_person` and `signup_url`, then
   `POST https://app.flaghand.com/api/v1/signup/claim` for the token. Then use the claimed or owner-provided token for
   `getMe`, `getBilling`, the account links and the first draft ([same-session recipe](https://app.flaghand.com/docs/setup#claude-code-finish-in-this-session)).
   For later sessions, use the [saved-token MCP setup](https://app.flaghand.com/docs/setup#claude-code-saved-token-mcp) below; on macOS its `headersHelper`

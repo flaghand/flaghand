@@ -42,7 +42,7 @@ installing anything else. The docs are also one page per task, each complete on 
 ## Start without a card
 
 For a coding agent with a shell or an HTTP client: if the person has no account and sign-up is open, read `GET https://app.flaghand.com/api/v1/plans`, explain the chosen price, then
-use `startSignup` (`POST /api/v1/signup` with email; optional `plan`, `workspace_name`, `found_via`) and give them its `signup_url`. With staged Managed
+use `startSignup` (`POST /api/v1/signup` with email; optional `plan`, `workspace_name`, `found_via`) and give them its `for_person` and `signup_url`. With staged Managed
 Payments enabled, worldwide base prices are USD $19/month or $190/year, or founding USD $149 for the first year,
 then $190/year while offered.
 Includes VAT/GST outside the US and Canada; US and Canadian tax is added at checkout where it applies.
@@ -50,8 +50,9 @@ Managed Payments Checkout may show local currency through Adaptive Pricing; read
 completes sign-up with Google or an email code shown on the page. Google/email create an account without a passkey; first approval
 adds one. No Checkout, card or Stripe customer at sign-up. Treat `claim_code` as a secret
 like the token: save the start reply in a new private file outside the repository (`umask 077`) before printing
-anything; show only `for_person`, `signup_url` and expiry. Never print the code or put it in command arguments, shell
-history or shared logs. Use `claimSignup` after they return; pending means registration or explicit Allow is unfinished,
+anything; show only `for_person`, `signup_url` and expiry. Never print the claim code or put it in command arguments, shell
+history or shared logs. `for_person` ends with `user_code` (`XXXX-XXXX`), which an existing owner types before Allow; it
+isn't a secret like `claim_code`, but only you, the agent that started the link, show it to your person. Use `claimSignup` after they return; pending means registration or explicit Allow is unfinished,
 not that another sign-up is needed. Honor `Retry-After` between turns. Never loop pending calls into the conversation.
 Write the claim answer to a private file before printing anything, then save the ready token in secret storage.
 
@@ -109,7 +110,7 @@ POST, so GET/mail scanners cannot use it up. Requests/checks share the signup IP
 **Never collect or enter the person's inbox code, consume their email link, answer provider consent or perform a
 passkey tap for them.** Relay the returned handoff unchanged. Ordinary proof of a previously unproven primary email
 can reset old passkeys, identities, sessions and agent access; the page explains that. Existing-account sign-in still
-requires that same verified owner to choose a workspace and explicitly Allow the agent. No method adds OAuth scopes.
+requires that same verified owner to choose a workspace, type the agent's `user_code` and explicitly Allow the agent. No method adds OAuth scopes.
 
 Settings › Account lists methods and the immutable primary email (`primary_email: {email, verified, available}`).
 The primary address remains a recovery path when mail is configured, even without an explicit identity row, so a
@@ -145,7 +146,7 @@ not sandbox blocks; see [Errors](https://app.flaghand.com/docs/errors.md).
 Use Flaghand's MCP tools when already authenticated. **In a Claude Code conversation with no working MCP, finish
 setup and drafting in this same session over HTTP.** Use the [short first-post path](https://app.flaghand.com/docs/first-post.md);
 [the same-session recipe](https://app.flaghand.com/docs/setup.md#claude-code-finish-in-this-session) has more detail. Start sign-up
-through the public HTTP API when open, hand `signup_url` to the person, then claim and save the token directly into
+through the public HTTP API when open, hand `for_person` and `signup_url` to the person, then claim and save the token directly into
 secret storage without printing it. Use it for `getMe` and `getSetup`; reuse setup's billing and connections
 (`getBilling` reads separate details if needed). A ready claim is not payment; `starting` allows drafting without a
 card. Continue with account-consent links and the first draft. Keep the original sign-up link while the claim is
@@ -164,7 +165,8 @@ They get only `read`, `drafts`, `media` and `request-approval`. Every MCP reques
 `WWW-Authenticate` points to OAuth discovery. Owners can revoke access in Settings › Agents.
 
 For shell/HTTP clients while sign-up is open, the sign-up link is the path whether or not the person already has an account: an existing
-owner signs in with a configured method and explicitly allows this agent, and `claimSignup` returns a token with those four scopes.
+owner signs in with a configured method, types the code `for_person` ends with and explicitly allows this agent, and `claimSignup`
+returns a token with those four scopes.
 While it is closed, an existing owner creates a workspace token with those four scopes in the desk. Keep the token
 in secret storage, never in a draft, note, command argument or shared log. Write `claimSignup`'s
 answer to a private file before printing anything. If its token is lost anyway, claim again with the same code within
@@ -184,7 +186,8 @@ chooses a platform for you. `getSetup` returns the same `next` plus diagnostic `
 If `next.operation_id` is null, give the person its support remedy in `next.tell_person` instead of retrying an
 unconfigured platform. Match the intended account before supplying a `connection_id`; advice never picks between
 several accounts needing a reconnect. `next_steps` still links the task pages.
-For `startSignup`, relay the returned `for_person` unchanged alongside `signup_url`; keep `claim_code` private.
+For `startSignup`, relay the returned `for_person` unchanged alongside `signup_url`; it ends with `user_code`, the code an
+existing owner types before Allow. Keep `claim_code` private.
 For `startConnection`, relay its `for_person` unchanged alongside `url`, rather than paraphrasing `next.tell_person`:
 they sign in and authorize the platform themselves. Do not name or guess any button on the page. Starting the link
 works before payment with `connections` scope. Keep its `attempt_id` (`cat_…`) and wait as described below.
