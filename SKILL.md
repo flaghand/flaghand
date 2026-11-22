@@ -106,8 +106,9 @@ no passwords. Email sends one link plus a six-digit code: either works once and 
 attempts disable that request's code, not its link. Twenty consecutive wrong codes for one address disable its codes
 across requests until a valid inbox link or fresh sign-in by another method restores them. The code stays in the
 requesting browser; the link opens a page with a Continue
-POST, so GET/mail scanners cannot use it up. Requests/checks share the signup IP bucket. A repeat within the address's
-60-second email window says check your inbox and sends nothing, whether or not the account exists.
+POST, so GET/mail scanners cannot use it up. Requests/checks share the signup IP bucket. A repeat before the
+address's wait is over (1, 5, 15, then 60 minutes after each unused email, 10 a day) sends nothing and says to use the
+newest email, whether or not the account exists.
 
 **Never collect or enter the person's inbox code, consume their email link, answer provider consent or perform a
 passkey tap for them.** Relay the returned handoff unchanged. Ordinary proof of a previously unproven primary email

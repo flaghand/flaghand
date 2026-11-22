@@ -103,9 +103,9 @@ methods shown (`GET /api/v1/auth/methods`); there are no passwords. An email con
 either works once and both last ten minutes. Five wrong codes disable that request's code, never its link; twenty
 consecutive wrong codes for an address disable its codes across requests until an email link or fresh sign-in another
 way restores them. The code is bound to the requesting browser. A link
-opens a Continue page; only its POST consumes it, never GET. Repeating a request within the address's 60-second window
-sends nothing and says check your inbox, whether the account is known or unknown. Requests/checks share the signup IP
-bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
+opens a Continue page; only its POST consumes it, never GET. Repeating a request before the address's wait is over (1,
+5, 15, then 60 minutes after each unused email, 10 a day) sends nothing and says to use the newest email, whether the
+account is known or unknown. Requests/checks share the signup IP bucket. Let the person complete inbox proof, provider consent and passkey taps themselves; never ask for their code,
 consume their sign-in link or sign them in from the agent's browser.
 
 Ordinary first proof of a previously unproven primary email applies the recovery-style reset of old passkeys,
