@@ -133,7 +133,7 @@ replacement token, not a new account.
 `media` and `request-approval`; the owner can revoke the app in Settings › Agents.
 
 **Existing owners can also provide a token.** The owner creates one in the desk, Settings › Agents › Create token
-(`https://app.flaghand.com/agents`), with those four scopes already chosen. It is shown once.
+(`https://app.flaghand.com/agents`), with those four scopes already chosen and their passkey, or an emailed code. It is shown once.
 [Save it for later sessions](https://app.flaghand.com/docs/setup#save-and-rediscover-access), never in a draft, note, chat message, command argument or
 shared log. Only the owner can add `connections` (start connecting accounts), `cancel`, `billing`, `webhooks` or
 `calendar`; a token can't create another token.
@@ -163,7 +163,8 @@ link, and collect a token when they finish. The response never says whether the 
    `/welcome` and returns to you. Sign-up has no Checkout or card step and creates no Stripe customer. Google/email
    sign-up, when configured, needs no passkey; the first approval creates one if needed. An existing
    owner signs in with a configured method, chooses a workspace they own, types the code from `for_person` and
-   explicitly clicks **Allow**. A missing or wrong code answers `user_code_mismatch` and allows nothing. The page
+   explicitly clicks **Allow**, with their passkey or, if they have none, a code emailed to them. A missing or wrong
+   agent code answers `user_code_mismatch` and allows nothing. The page
    shows the agent's name and the four scopes it gets: `read`, `drafts`, `media`, `request-approval`. No second account,
    subscription or new passkey is needed, and the workspace's original free-start/trial dates stay unchanged. Provider
    or email proof binds Allow to that verified person, not the address the agent typed. Signing in alone grants nothing.
@@ -861,7 +862,7 @@ required fresh proof in the desk; no agent token can call it.
 | [`startSignup`](https://app.flaghand.com/docs/api/startSignup.md) | `POST /signup` | `flaghand sign-up start-signup` | `callWriteOperation` | none | Start agent access: a new owner creates an account with a configured sign-in method and no card; an existing owner signs in and allows the agent; never reveals whether the email has an account |
 | [`claimSignup`](https://app.flaghand.com/docs/api/claimSignup.md) | `POST /signup/claim` | `flaghand sign-up claim-signup` | `callWriteOperation` | none | Collect the agent token; 202 until the person creates their account or allows the agent |
 | [`joinWaitlist`](https://app.flaghand.com/docs/api/joinWaitlist.md) | `POST /waitlist` | `flaghand sign-up join-waitlist` | `callWriteOperation` | none | Join the public site's waitlist (no email is sent) |
-| [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent; its value is shown once |
+| [`createToken`](https://app.flaghand.com/docs/api/createToken.md) | `POST /workspaces/{workspace}/tokens` | `flaghand tokens create` | not for agents | owner's passkey | Create an API token for an agent with the owner's passkey (or an emailed code); its value is shown once and every owner is emailed |
 
 Next: [draft and schedule](https://app.flaghand.com/docs/drafting.md). Also complete on their own:
 [media and threads](https://app.flaghand.com/docs/media-and-threads.md), [schedule and results](https://app.flaghand.com/docs/schedule-and-results.md),

@@ -110,7 +110,8 @@ POST, so GET/mail scanners cannot use it up. Requests/checks share the signup IP
 **Never collect or enter the person's inbox code, consume their email link, answer provider consent or perform a
 passkey tap for them.** Relay the returned handoff unchanged. Ordinary proof of a previously unproven primary email
 can reset old passkeys, identities, sessions and agent access; the page explains that. Existing-account sign-in still
-requires that same verified owner to choose a workspace, type the agent's `user_code` and explicitly Allow the agent. No method adds OAuth scopes.
+requires that same verified owner to choose a workspace, type the agent's `user_code` and explicitly Allow the agent. Every
+Allow takes their passkey, or a code emailed to an owner who has none. No method adds OAuth scopes.
 
 Settings › Account lists methods and the immutable primary email (`primary_email: {email, verified, available}`).
 The primary address remains a recovery path when mail is configured, even without an explicit identity row, so a
