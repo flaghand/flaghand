@@ -24,7 +24,12 @@
       "url": "https://app.flaghand.com/mcp/via/registry"
     }
   ],
+  "repository": {
+    "id": "1434792904",
+    "source": "github",
+    "url": "https://github.com/flaghand/flaghand"
+  },
   "title": "Flaghand",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "websiteUrl": "https://flaghand.com/?utm_source=mcp-directory&utm_medium=referral&utm_campaign=flaghand_launch_nov2026&utm_content=registry"
 }
